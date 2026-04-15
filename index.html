@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>PropSpera - Kigali Real Estate</title>
+    <meta name="description" content="Find your perfect property in Kigali with verified real estate agents. Buy, rent, or sell properties across Rwanda's capital city." />
+ 
+    <!-- PWA Theme -->
+    <meta name="theme-color" content="#2563eb" />
+ 
+    <!-- PWA Manifest (inlined as data URI to avoid needing a new file) -->
+    <link rel="manifest" href="data:application/manifest+json,{
+      &quot;name&quot;:&quot;PropSpera - Kigali Real Estate&quot;,
+      &quot;short_name&quot;:&quot;PropSpera&quot;,
+      &quot;description&quot;:&quot;Find your perfect property in Kigali with verified real estate agents&quot;,
+      &quot;start_url&quot;:&quot;/&quot;,
+      &quot;display&quot;:&quot;standalone&quot;,
+      &quot;background_color&quot;:&quot;#ffffff&quot;,
+      &quot;theme_color&quot;:&quot;#2563eb&quot;,
+      &quot;orientation&quot;:&quot;portrait-primary&quot;,
+      &quot;scope&quot;:&quot;/&quot;,
+      &quot;icons&quot;:[{&quot;src&quot;:&quot;/placeholder.svg&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;,&quot;purpose&quot;:&quot;maskable any&quot;}]
+    }" />
+ 
+    <!-- Android PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+ 
+    <!-- iOS PWA — PNG required for home screen icon on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PropSpera" />
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJgAAACYCAYAAAAYwiAhAAAEHUlEQVR4nO3dMXLTQBSHcclDzQxM3NOEI1BwAA5CKCiAC1BzgUBBkeQgOQAFR4gb+jBhhgMQCqOMkWV7Je9f773d71dmEs969elJJLZpm4xOz27vcz4ebKwul22uxzrqgQiqDscEN+kHCatOU0Ib9QOEhaYZF9oi9RuJC50xLSQFRlzoS21i76gjLKTYd8ncOcGIC6n2tZJ8DwZMMRgY0wtj7WpmKzDiwlRD7SwOfQMwRr8h7sEg9RAY0wu5bLbEBIPUommYXsiva4oJBikCgxSBQarl/gtKTDBIERikCAxSBAYpAoMUgY10c3FivYRQCGyELi4iS8fvwRLsC+r5m58zriQeJtgBh6YV02w/JtgOU8Jhmm1jgg2YOpWYZtuYYBtyBsI0W2OC/ZN7+jDN1qoP7ObiRBYDkVUe2BwBKAOOoMrALA56rZFVF5jlga5xmlUTmKeD62Udc6giMI8H1FPwSsUH5v0gel/fsYoNLNKEiLLOKYoMLOIBi3RCjFFUYCUcpOjr7ysmsJIOTAknSid8YCUdjL4SnlfowEo4AIdEP4FCBhZ906eI+nzDBRZ1o3OIeGKFCSzi5qpE2ocQgUXa0LlE2RP3gUXZSAsRprrbwCJsnhee98llYJ43zCuvJ6SrwLxuUiTe9s9NYN42JjJPJ6p5YJ42ozQe9tU0MA8bUDrrPTZ5Z7f1k66VxbvNZ59gxGXHYu9nm2CE5ctc02yWCUZc/sx1TKQTjLBiUE4z2QQjrjiUx8r088GIcB6Wn1Vm/otWlI3AIEVgkHpkvYBdvnz7k+2x3r30eR7V8BxdrirnxiseL4canmPTOA0M5SAwSBEYpAgMUgQGKQKDFIFBisAgRWCQIjBIERik3P6xOzdv/0Hoh9dPrZcwCyYYpKqZYEpDL/32NjGtMMEgRWCQIjBIuQws98t/z6/usj5eDrnX5PUl025v8nNtmOeb7fOru+LfG+o2MA+uPz350f/aq4+/ns2/krh8zlUUg8AgRWCQIjBIERikqv1X5Nf3j7/3v/b28+8XFmspGRMMUgQGKQKDFIFBisAgRWCQIjBIERikCAxSBAYpAoMUgUGKwCBFYJAiMEgRGKQIDFIEBikCgxSBQaraN32kvMEj9WMCPH/+hTUmGKQIDFLFB+b545E8ry2X9vTs9t56EShX8RMMtggMUgQGKQKDFIFBisAgRWCQIjBIERikCAxSBAYpAoMUgUFqsbpcttaLQJlWl8uWCQYpAoMUgUFq0TTra6X1QlCWrikmGKQeAmOKIZfNlphgkPovMKYYjtVvaGuCERmmGmpn8BJJZBhrVzPcg0FqZ2BMMaTa10pSRHy8AIakDKGkSyTTDH2pTSTfgxEZOmNamBQNl8w6TRkyR00lQqvDMVevrJc9gitDztuhvyvZRSmwNkjCAAAAAElFTkSuQmCC" />
+    <link rel="apple-touch-icon" sizes="152x152" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJgAAACYCAYAAAAYwiAhAAAEHUlEQVR4nO3dMXLTQBSHcclDzQxM3NOEI1BwAA5CKCiAC1BzgUBBkeQgOQAFR4gb+jBhhgMQCqOMkWV7Je9f773d71dmEs969elJJLZpm4xOz27vcz4ebKwul22uxzrqgQiqDscEN+kHCatOU0Ib9QOEhaYZF9oi9RuJC50xLSQFRlzoS21i76gjLKTYd8ncOcGIC6n2tZJ8DwZMMRgY0wtj7WpmKzDiwlRD7SwOfQMwRr8h7sEg9RAY0wu5bLbEBIPUommYXsiva4oJBikCgxSBQarl/gtKTDBIERikCAxSBAYpAoMUgY10c3FivYRQCGyELi4iS8fvwRLsC+r5m58zriQeJtgBh6YV02w/JtgOU8Jhmm1jgg2YOpWYZtuYYBtyBsI0W2OC/ZN7+jDN1qoP7ObiRBYDkVUe2BwBKAOOoMrALA56rZFVF5jlga5xmlUTmKeD62Udc6giMI8H1FPwSsUH5v0gel/fsYoNLNKEiLLOKYoMLOIBi3RCjFFUYCUcpOjr7ysmsJIOTAknSid8YCUdjL4SnlfowEo4AIdEP4FCBhZ906eI+nzDBRZ1o3OIeGKFCSzi5qpE2ocQgUXa0LlE2RP3gUXZSAsRprrbwCJsnhee98llYJ43zCuvJ6SrwLxuUiTe9s9NYN42JjJPJ6p5YJ42ozQe9tU0MA8bUDrrPTZ5Z7f1k66VxbvNZ59gxGXHYu9nm2CE5ctc02yWCUZc/sx1TKQTjLBiUE4z2QQjrjiUx8r088GIcB6Wn1Vm/otWlI3AIEVgkHpkvYBdvnz7k+2x3r30eR7V8BxdrirnxiseL4canmPTOA0M5SAwSBEYpAgMUgQGKQKDFIFBisAgRWCQIjBIERik3P6xOzdv/0Hoh9dPrZcwCyYYpKqZYEpDL/32NjGtMMEgRWCQIjBIuQws98t/z6/usj5eDrnX5PUl025v8nNtmOeb7fOru+LfG+o2MA+uPz350f/aq4+/ns2/krh8zlUUg8AgRWCQIjBIERikqv1X5Nf3j7/3v/b28+8XFmspGRMMUgQGKQKDFIFBisAgRWCQIjBIERikCAxSBAYpAoMUgUGKwCBFYJAiMEgRGKQIDFIEBikCgxSBQaraN32kvMEj9WMCPH/+hTUmGKQIDFLFB+b545E8ry2X9vTs9t56EShX8RMMtggMUgQGKQKDFIFBisAgRWCQIjBIERikCAxSBAYpAoMUgUFqsbpcttaLQJlWl8uWCQYpAoMUgUFq0TTra6X1QlCWrikmGKQeAmOKIZfNlphgkPovMKYYjtVvaGuCERmmGmpn8BJJZBhrVzPcg0FqZ2BMMaTa10pSRHy8AIakDKGkSyTTDH2pTSTfgxEZOmNamBQNl8w6TRkyR00lQqvDMVevrJc9gitDztuhvyvZRSmwNkjCAAAAAElFTkSuQmCC" />
+    <link rel="apple-touch-icon" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFQ0lEQVR4nO3dPXIcVRgF0B4VMVVQVk5ilkDAAlgIJiAANkDMBgwBge2FeAEELMFKyE2ZKhaACYxcwtLM9PTP+7vnpLI9b/rd2193T3l0mAp4/OT12xKvw1hunl8f9n6NXV5A4NnDHoXY9B8UfErYsgir/yGhp6a1Zbha85eFn9rWZnBRewSfFi2ZBhdPAOGnVUuyeVEBhJ/WXZrR2QUQfnpxSVZnFUD46c3czJ4tgPDTqznZPVkA4ad35zJ8tADCzyhOZfnBAgg/ozmW6VWfBEPv7hXA2Z9RPZTtq3N/AEbyYcZdAhFNAYj2vgAuf0hxN+smANGupsnZnzy3mTcBiKYARFMAoh1c/5PMBCCaAhBNAYimAERTAKIpQGWvnj2qvYRoClDRbfiVoB6fA1RwKvCff/NnwZVgAhR27mxvGpRlAhSyJNimwf5MgAKWntVNg/2ZADvaMsCmwT5MgJ1sffY2DfahABt79ezRbmFVgu0pwIZKBHTPgiVSgI2UDqUSbMNN8EotBNEN8nImwAothH+a2llHj0yABVoOnGlwGRPgQi2Hf5raX19rFGCmnp6+9LLOFijADD0GqqfC1qQAJ4wQot7XvzcFOGKk4IxQ5L0owANGDcuo72sNj0HvSAqIx6XvmAD/SQr/NOW932PiC5B8fZz6vu+KLoAAZJ8Apim0AOmb/pDU4xFXgNSNniPxxBBTgMTNXSrpOEUUIGlDt5JyzIb+HCBlE/c28mcGw04A4d/OyMdyyAKMvGG1jHoPNVQBRt2klox2fIcpwGgb07KRTjTdF2CkzejNCMe96wKMsAG9630PunwM2vtBH1WPj0u7mwDC364e96abCdDjwU3WyzToYgIIf3962bPmC9DLgeS+Hp7QNVuAHg4e87S8j00WoOUDxjKt7mlTN8GtHiS21dINcjMTQPhztLTX1SdASweD8mpPg6oTQPipnYEqE6D2m6ZNNaZB8Qkg/BxTIxvV7wHOUZi+1b7GP6eZp0BQgwIQTQGIpgBEUwCifVR7AWv88ts/u7/Gd1/2fY5wjE7rduUlNrbk6+zBMTqv2wLAFhSAaApANAUgmgIQTQGIpgBEUwCiKQDRFIBoCkA0BSCaAhBNAYimAETr+j/ElNL6V3sc88PXn9ZeQvNMAKKZAI069YVgvU6kFpkARFMAoikA0botQKmv4nj64k2R19lDqbX3/LUoXd8E733gR7jZfPrijW/YPqHf6sIGup4APXn50yd/HPvZVz/+9Vm5lXCXCUA0BSCaAhBNAYimAERTAKIpANF8DrDQr99//Puxn337899flFwLy5kARFMAoikA0RSAaApANAUgmgIQTQGIpgBEUwCiKQDRFIBoCkA0BSCaAhBNAYimAERTAKIpANEUgGgKQDQFIJoCEE0BiKYARPPNcIX4LTBtUoCF9v76wxF+QV8PXAIRTQGIpgAnjPD7dUd4D3tSgDN6DlDPay/l8PjJ67e1FwG1mABEUwCiKQDRFIBoCkA0BSCaAhBNAYimAERTAKIpANEUgGgKQDQFIJoCEO3q5vn1ofYioIab59cHE4BoCkA0BSDa1TS9uxaqvRAo6TbzJgDR3hfAFCDF3aybAERTAKL9rwAugxjdhxm/NwGUgFE9lG2XQER7sACmAKM5lumjE0AJGMWpLJ+8BFICencuw2fvAZSAXs3J7qybYCWgN3MzO/spkBLQi0uyetFjUCWgdZdm9OLPAZSAVi3J5qow+/1itGDNSXnVJ8GmAbWtzeCmATYRKGHLE+8uZ3BFYA97XHEUuYRRCJYocYn9L30Pl12gHj7dAAAAAElFTkSuQmCC" />
+ 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFQ0lEQVR4nO3dPXIcVRgF0B4VMVVQVk5ilkDAAlgIJiAANkDMBgwBge2FeAEELMFKyE2ZKhaACYxcwtLM9PTP+7vnpLI9b/rd2193T3l0mAp4/OT12xKvw1hunl8f9n6NXV5A4NnDHoXY9B8UfErYsgir/yGhp6a1Zbha85eFn9rWZnBRewSfFi2ZBhdPAOGnVUuyeVEBhJ/WXZrR2QUQfnpxSVZnFUD46c3czJ4tgPDTqznZPVkA4ad35zJ8tADCzyhOZfnBAgg/ozmW6VWfBEPv7hXA2Z9RPZTtq3N/AEbyYcZdAhFNAYj2vgAuf0hxN+smANGupsnZnzy3mTcBiKYARFMAoh1c/5PMBCCaAhBNAYimAERTAKIpQGWvnj2qvYRoClDRbfiVoB6fA1RwKvCff/NnwZVgAhR27mxvGpRlAhSyJNimwf5MgAKWntVNg/2ZADvaMsCmwT5MgJ1sffY2DfahABt79ezRbmFVgu0pwIZKBHTPgiVSgI2UDqUSbMNN8EotBNEN8nImwAothH+a2llHj0yABVoOnGlwGRPgQi2Hf5raX19rFGCmnp6+9LLOFijADD0GqqfC1qQAJ4wQot7XvzcFOGKk4IxQ5L0owANGDcuo72sNj0HvSAqIx6XvmAD/SQr/NOW932PiC5B8fZz6vu+KLoAAZJ8Apim0AOmb/pDU4xFXgNSNniPxxBBTgMTNXSrpOEUUIGlDt5JyzIb+HCBlE/c28mcGw04A4d/OyMdyyAKMvGG1jHoPNVQBRt2klox2fIcpwGgb07KRTjTdF2CkzejNCMe96wKMsAG9630PunwM2vtBH1WPj0u7mwDC364e96abCdDjwU3WyzToYgIIf3962bPmC9DLgeS+Hp7QNVuAHg4e87S8j00WoOUDxjKt7mlTN8GtHiS21dINcjMTQPhztLTX1SdASweD8mpPg6oTQPipnYEqE6D2m6ZNNaZB8Qkg/BxTIxvV7wHOUZi+1b7GP6eZp0BQgwIQTQGIpgBEUwCifVR7AWv88ts/u7/Gd1/2fY5wjE7rduUlNrbk6+zBMTqv2wLAFhSAaApANAUgmgIQTQGIpgBEUwCiKQDRFIBoCkA0BSCaAhBNAYimAETr+j/ElNL6V3sc88PXn9ZeQvNMAKKZAI069YVgvU6kFpkARFMAoikA0botQKmv4nj64k2R19lDqbX3/LUoXd8E733gR7jZfPrijW/YPqHf6sIGup4APXn50yd/HPvZVz/+9Vm5lXCXCUA0BSCaAhBNAYimAERTAKIpANF8DrDQr99//Puxn337899flFwLy5kARFMAoikA0RSAaApANAUgmgIQTQGIpgBEUwCiKQDRFIBoCkA0BSCaAhBNAYimAERTAKIpANEUgGgKQDQFIJoCEE0BiKYARPPNcIX4LTBtUoCF9v76wxF+QV8PXAIRTQGIpgAnjPD7dUd4D3tSgDN6DlDPay/l8PjJ67e1FwG1mABEUwCiKQDRFIBoCkA0BSCaAhBNAYimAERTAKIpANEUgGgKQDQFIJoCEO3q5vn1ofYioIab59cHE4BoCkA0BSDa1TS9uxaqvRAo6TbzJgDR3hfAFCDF3aybAERTAKL9rwAugxjdhxm/NwGUgFE9lG2XQER7sACmAKM5lumjE0AJGMWpLJ+8BFICencuw2fvAZSAXs3J7qybYCWgN3MzO/spkBLQi0uyetFjUCWgdZdm9OLPAZSAVi3J5qow+/1itGDNSXnVJ8GmAbWtzeCmATYRKGHLE+8uZ3BFYA97XHEUuYRRCJYocYn9L30Pl12gHj7dAAAAAElFTkSuQmCC" />
+ 
+    <!-- Open Graph -->
+    <meta property="og:title" content="PropSpera - Kigali Real Estate" />
+    <meta property="og:description" content="Find your perfect property in Kigali with verified real estate agents." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://propspera.com" />
+    <meta property="og:image" content="/og.jpg" />
+ 
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PropSpera - Kigali Real Estate" />
+    <meta name="twitter:description" content="Find your perfect property in Kigali with verified real estate agents." />
+    <meta name="twitter:image" content="/og.jpg" />
+ 
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+ 
+ 
+  </head>
+ 
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
