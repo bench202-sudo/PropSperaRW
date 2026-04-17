@@ -27,6 +27,12 @@ verify_jwt = false
 import_map = "./functions/admin-agent-status/deno.json"
 entrypoint = "./functions/admin-agent-status/index.ts"
 
+[functions.oauth-provision]
+enabled = true
+verify_jwt = false
+import_map = "./functions/oauth-provision/deno.json"
+entrypoint = "./functions/oauth-provision/index.ts"
+
 [functions.reset-or-invite]
 enabled = true
 verify_jwt = false

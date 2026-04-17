@@ -798,43 +798,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAppUser(profile);
           } else if (!profile) {
             // No public.users row matched this auth_id.
-            // Covers: new OAuth users, AND existing email/password users signing in
-            // via Google for the first time (INITIAL_SESSION fires, not SIGNED_IN).
+            // The DB trigger on auth.users INSERT creates rows WITHOUT auth_id,
+            // so client-side updates are blocked by RLS. Use the oauth-provision
+            // edge function (service-role key) to link or create the profile.
             const { user } = newSession;
             const isOAuth = user.app_metadata?.provider !== 'email';
             if (isOAuth && mounted) {
               try {
-                const fullName =
-                  user.user_metadata?.full_name ??
-                  user.user_metadata?.name ??
-                  user.email?.split('@')[0] ??
-                  'User';
-
-                // Check if a row already exists for this email (email/password account).
-                // If so, update its auth_id to link the Google identity instead of
-                // inserting a duplicate that would violate the email unique constraint.
-                const { data: existingByEmail } = await supabase
-                  .from('users')
-                  .select('id')
-                  .eq('email', user.email)
-                  .maybeSingle();
-
-                if (existingByEmail) {
-                  await supabase
-                    .from('users')
-                    .update({ auth_id: user.id })
-                    .eq('email', user.email!);
+                const { data, error: fnErr } = await supabase.functions.invoke('oauth-provision');
+                if (fnErr) {
+                  console.warn('oauth-provision invocation error:', fnErr.message);
+                } else if (data?.success === false) {
+                  console.warn('oauth-provision failed:', data.error);
                 } else {
-                  await supabase.from('users').insert({
-                    auth_id: user.id,
-                    email: user.email,
-                    full_name: fullName,
-                    role: 'buyer',
-                  });
+                  // Re-fetch via the normal path so appUser is always from the DB
+                  const newProfile = await fetchAppUser(user.id);
+                  if (mounted && newProfile) setAppUser(newProfile);
                 }
-
-                const newProfile = await fetchAppUser(user.id);
-                if (mounted && newProfile) setAppUser(newProfile);
               } catch (oauthErr) {
                 console.warn('Could not provision OAuth user profile:', oauthErr);
               }
