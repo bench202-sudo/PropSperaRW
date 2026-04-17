@@ -21,6 +21,12 @@ entrypoint = "./functions/send-verification-email/index.ts"
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-verification-email/*.html" ]
 
+[functions.admin-agent-status]
+enabled = true
+verify_jwt = false
+import_map = "./functions/admin-agent-status/deno.json"
+entrypoint = "./functions/admin-agent-status/index.ts"
+
 [functions.reset-or-invite]
 enabled = true
 verify_jwt = false

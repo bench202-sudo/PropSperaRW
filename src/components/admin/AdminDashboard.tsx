@@ -226,20 +226,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
  
   const handleToggleAgentActive = async (agentId: string, currentIsActive: boolean) => {
     setActionLoading(agentId);
+    setError(null);
     try {
       const newIsActive = !currentIsActive;
-      const { error } = await supabase
-        .from('agents')
-        .update({ is_active: newIsActive, updated_at: new Date().toISOString() })
-        .eq('id', agentId);
- 
-      if (error) { setError('Failed to update agent status.'); return; }
- 
-      await supabase
-        .from('properties')
-        .update({ hidden: !newIsActive, updated_at: new Date().toISOString() })
-        .eq('agent_id', agentId);
- 
+
+      // Use edge function with service-role key to bypass RLS restrictions
+      // that silently block direct client-side updates to is_active.
+      const { data, error } = await supabase.functions.invoke('admin-agent-status', {
+        body: { agentId, isActive: newIsActive },
+      });
+
+      if (error) {
+        setError(`Failed to update agent status: ${(error as Error).message}`);
+        return;
+      }
+      if (data && data.success === false) {
+        setError(data.error ?? 'Failed to update agent status.');
+        return;
+      }
+      if (data?.warning) {
+        console.warn('[admin-agent-status]', data.warning);
+      }
+
+      // Only update local state after confirmed DB success
       setAgents(prev => prev.map(a => a.id === agentId ? { ...a, is_active: newIsActive } : a));
       await fetchProperties();
     } catch (err) {
@@ -374,6 +383,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
  
   const renderAgents = () => (
     <div className="p-5">
+      {error && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircleIcon size={20} className="text-red-600 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-red-700 flex-1">{error}</p>
+            <button onClick={() => setError(null)}><XIcon size={16} /></button>
+          </div>
+        </div>
+      )}
       <div className="flex justify-end mb-4">
         <button onClick={fetchAgents} disabled={loading} className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50">
           <RefreshIcon size={16} className={loading ? 'animate-spin' : ''} />

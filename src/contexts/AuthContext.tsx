@@ -772,10 +772,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔐 Auth event:', event, '| Session:', newSession ? 'active' : 'null');
       if (!mounted) return;
  
-      if (event === 'SIGNED_IN' && appUser) {
-        console.log('⏭️ Skipping redundant SIGNED_IN — user already loaded');
+      // When a password-reset link is clicked the user lands anywhere in the app
+      // (depending on Supabase Site URL config). Redirect them to /reset-password
+      // so they can set a new password regardless of which page they landed on.
+      if (event === 'PASSWORD_RECOVERY') {
+        if (window.location.pathname !== '/reset-password') {
+          window.location.href = '/reset-password';
+        }
         return;
       }
+
  
       setSession(newSession);
       setUser(newSession?.user ?? null);
@@ -878,20 +884,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
   const resetPassword = async (email: string, full_name?: string) => {
     try {
-      // Use the reset-or-invite edge function so that users imported from
-      // external platforms (who exist in public.users but NOT in auth.users)
-      // also receive an email. The function detects whether the auth user
-      // exists and either sends a password-recovery link or an invite link.
+      // The edge function always returns HTTP 200 — errors are signalled via
+      // data.success === false so we can read the actual message.
       const { data, error } = await supabase.functions.invoke('reset-or-invite', {
         body: { email, full_name: full_name ?? '' },
       });
-      if (error) return { error };
+      if (error) {
+        // Unexpected HTTP error (network, DNS, etc.) — surface raw message.
+        return { error: new Error((error as Error).message ?? 'Failed to reach email service') };
+      }
       if (data && data.success === false) {
+        console.error('reset-or-invite error detail:', data.detail ?? data.error);
         return { error: new Error(data.error ?? 'Failed to send reset email') };
       }
       return { error: null };
-    } catch (error) {
-      return { error: error as Error };
+    } catch (err) {
+      return { error: err as Error };
     }
   };
  
