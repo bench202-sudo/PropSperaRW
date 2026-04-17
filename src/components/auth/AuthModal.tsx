@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { UserRole } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  XIcon, MailIcon, UserIcon, ShieldCheckIcon, BuildingIcon,
+  XIcon, MailIcon, UserIcon, ShieldCheckIcon,
   EyeIcon, ChevronLeftIcon, CheckCircleIcon, AlertCircleIcon 
 } from '@/components/icons/Icons';
  
@@ -14,7 +13,6 @@ interface AuthModalProps {
 }
  
 type AuthView = 'login' | 'signup' | 'forgot-password' | 'verification-sent' | 'reset-sent';
-type SignupRole = 'buyer' | 'homeowner';
  
 const GoogleIcon: React.FC = () => (
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -32,7 +30,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError ?? null);
   const [showPassword, setShowPassword] = useState(false);
-  const [signupRole, setSignupRole] = useState<SignupRole>('buyer');
  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,9 +64,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     if (password !== confirmPassword) { setError('Passwords do not match'); return; }
     setLoading(true);
-    // Agents still register as buyer first, then apply via AgentSignup
-    const role: UserRole = agentSignupIntent ? 'buyer' : signupRole;
-    const { error } = await signUp(email, password, fullName, role);
+    const { error } = await signUp(email, password, fullName, 'buyer');
     if (error) { setError(error.message); setLoading(false); return; }
     setLoading(false);
     setView('verification-sent');
@@ -160,60 +155,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
   const renderSignup = () => (
     <form onSubmit={handleSignup} className="space-y-4">
       {!agentSignupIntent && renderGoogleButton()}
-      {agentSignupIntent ? (
+      {agentSignupIntent && (
         <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
           <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <ShieldCheckIcon size={18} className="text-white" />
           </div>
           <p className="text-sm text-blue-800">Create an account first, then complete your agent application after signing in.</p>
-        </div>
-      ) : (
-        /* Account type selector */
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">I am a</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setSignupRole('buyer')}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                signupRole === 'buyer'
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${signupRole === 'buyer' ? 'bg-blue-600' : 'bg-gray-100'}`}>
-                <UserIcon size={20} className={signupRole === 'buyer' ? 'text-white' : 'text-gray-500'} />
-              </div>
-              <div className="text-center">
-                <p className="font-semibold text-sm">Buyer / Renter</p>
-                <p className="text-xs text-gray-400 mt-0.5">Browse & inquire</p>
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSignupRole('homeowner')}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                signupRole === 'homeowner'
-                  ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${signupRole === 'homeowner' ? 'bg-emerald-600' : 'bg-gray-100'}`}>
-                <BuildingIcon size={20} className={signupRole === 'homeowner' ? 'text-white' : 'text-gray-500'} />
-              </div>
-              <div className="text-center">
-                <p className="font-semibold text-sm">Home Owner</p>
-                <p className="text-xs text-gray-400 mt-0.5">List my property</p>
-              </div>
-            </button>
-          </div>
-          {signupRole === 'homeowner' && (
-            <div className="mt-3 p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-              <p className="text-xs text-emerald-700">
-                <strong>Home Owner:</strong> List and manage your own properties directly. No agency or license required.
-              </p>
-            </div>
-          )}
         </div>
       )}
  
@@ -256,12 +203,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
         </div>
       )}
       <button type="submit" disabled={loading}
-        className={`w-full py-3.5 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 ${
-          signupRole === 'homeowner' && !agentSignupIntent
-            ? 'bg-emerald-600 hover:bg-emerald-700'
-            : 'bg-blue-600 hover:bg-blue-700'
-        }`}>
-        {loading ? 'Creating account...' : signupRole === 'homeowner' && !agentSignupIntent ? 'Create Home Owner Account' : 'Create Account'}
+        className="w-full py-3.5 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 bg-blue-600 hover:bg-blue-700">
+        {loading ? 'Creating account...' : 'Create Account'}
       </button>
       <p className="text-center text-sm text-gray-500">
         Already have an account?{' '}
@@ -294,20 +237,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
  
   const renderVerificationSent = () => (
     <div className="text-center py-4">
-      <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${signupRole === 'homeowner' ? 'bg-emerald-100' : 'bg-green-100'}`}>
-        <CheckCircleIcon size={32} className={signupRole === 'homeowner' ? 'text-emerald-600' : 'text-green-600'} />
+      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100">
+        <CheckCircleIcon size={32} className="text-green-600" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">
-        {signupRole === 'homeowner' ? 'Welcome, Home Owner!' : 'Check your email'}
-      </h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">Check your email</h3>
       <p className="text-gray-500 mb-6">
-        {signupRole === 'homeowner'
-          ? <>Your account has been created. Check <strong>{email}</strong> for a welcome email. You can now sign in and list your property.</>
-          : <>We've sent a verification link to <strong>{email}</strong>.
-            {agentSignupIntent && ' Once verified, sign in and click "Become a Verified Agent" to complete your application.'}</>
-        }
+        We've sent a verification link to <strong>{email}</strong>.
+        {agentSignupIntent && ' Once verified, sign in and click "Become a Verified Agent" to complete your application.'}
       </p>
-      <button onClick={onClose} className={`w-full py-3.5 text-white rounded-xl font-semibold transition-colors ${signupRole === 'homeowner' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
+      <button onClick={onClose} className="w-full py-3.5 text-white rounded-xl font-semibold transition-colors bg-blue-600 hover:bg-blue-700">
         Got it
       </button>
     </div>
@@ -329,7 +267,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
       case 'login': return agentSignupIntent ? 'Sign in to apply' : 'Welcome back';
       case 'signup': return agentSignupIntent ? 'Create your account' : 'Create your account';
       case 'forgot-password': return 'Reset password';
-      case 'verification-sent': return signupRole === 'homeowner' ? 'Account Created!' : 'Verify your email';
+      case 'verification-sent': return 'Verify your email';
       case 'reset-sent': return 'Email sent';
       default: return '';
     }

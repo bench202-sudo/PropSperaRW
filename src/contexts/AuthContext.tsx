@@ -908,12 +908,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .from('users').select('id').eq('auth_id', data.user.id).single();
  
           if (existingUser) {
+            // Do NOT overwrite role — preserve any existing role from imported data
             await supabase.from('users')
-              .update({ role, full_name: fullName })
+              .update({ full_name: fullName })
               .eq('auth_id', data.user.id);
           } else {
             await supabase.from('users')
-              .insert({ auth_id: data.user.id, email, full_name: fullName, role });
+              .insert({ auth_id: data.user.id, email, full_name: fullName, role: 'buyer' });
           }
         } catch (profileErr) {
           console.warn('Error setting up user profile during signup:', profileErr);
