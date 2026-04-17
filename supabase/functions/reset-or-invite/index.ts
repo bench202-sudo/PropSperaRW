@@ -23,72 +23,38 @@ const corsHeaders = {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-async function adminGet(path: string, serviceKey: string, supabaseUrl: string) {
-  const res = await fetch(`${supabaseUrl}/auth/v1/admin/${path}`, {
-    headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  return res;
-}
-
-async function adminPost(path: string, body: unknown, serviceKey: string, supabaseUrl: string) {
-  const res = await fetch(`${supabaseUrl}/auth/v1/admin/${path}`, {
-    method: 'POST',
-    headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  return res;
-}
-
-/** Returns auth.users row or null (never throws). */
-async function findAuthUser(email: string, serviceKey: string, supabaseUrl: string) {
-  try {
-    // Supabase admin list endpoint accepts an email filter
-    const res = await adminGet(
-      `users?email=${encodeURIComponent(email)}&per_page=1`,
-      serviceKey,
-      supabaseUrl,
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const users: Array<{ id: string; email: string }> = data?.users ?? [];
-    return users.find((u) => u.email?.toLowerCase() === email.toLowerCase()) ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/** Generate a Supabase admin action link (recovery or invite). */
+/**
+ * Attempt to generate a Supabase admin action link.
+ * Returns { actionUrl, ok } where ok=false means the user doesn't exist
+ * in auth.users (for type=recovery) or another server error occurred.
+ */
 async function generateLink(
-  type: 'recovery' | 'invite' | 'magiclink',
+  type: 'recovery' | 'invite',
   email: string,
   redirectTo: string,
   serviceKey: string,
   supabaseUrl: string,
-): Promise<string | null> {
+): Promise<{ actionUrl: string | null; ok: boolean; status: number }> {
   try {
-    const res = await adminPost(
-      'generate_link',
-      { type, email, options: { redirect_to: redirectTo } },
-      serviceKey,
-      supabaseUrl,
-    );
+    const res = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+      method: 'POST',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type, email, options: { redirect_to: redirectTo } }),
+    });
     if (!res.ok) {
-      console.warn(`generate_link(${type}) failed (${res.status}):`, await res.text());
-      return null;
+      const body = await res.text();
+      console.warn(`generate_link(${type}) failed (${res.status}):`, body);
+      return { actionUrl: null, ok: false, status: res.status };
     }
     const data = await res.json();
-    return data?.action_link ?? null;
+    return { actionUrl: data?.action_link ?? null, ok: true, status: 200 };
   } catch (err) {
     console.warn(`generate_link(${type}) error:`, err);
-    return null;
+    return { actionUrl: null, ok: false, status: 0 };
   }
 }
 
@@ -237,66 +203,48 @@ Deno.serve(async (req) => {
     const firstName = (full_name ?? email.split('@')[0]).split(' ')[0];
     const year = new Date().getFullYear();
 
-    // ── Step 1: check if user exists in auth.users ────────────────────────
-    const authUser = await findAuthUser(email, serviceKey, supabaseUrl);
-    const userExists = authUser !== null;
+    // ── Step 1: try recovery link (succeeds only if user exists in auth.users) ──
+    console.log(`Attempting recovery link for: ${email}`);
+    const recovery = await generateLink('recovery', email, redirectTo, serviceKey, supabaseUrl);
 
-    console.log(`Email: ${email} | auth.users exists: ${userExists}`);
-
-    if (userExists) {
-      // ── Path A: user exists → send password reset ───────────────────────
-      const actionUrl = await generateLink('recovery', email, redirectTo, serviceKey, supabaseUrl);
-
-      if (!actionUrl) {
-        // Fallback: let Supabase send its built-in reset email
-        const res = await adminPost(
-          `generate_link`,
-          { type: 'recovery', email, options: { redirect_to: redirectTo } },
-          serviceKey,
-          supabaseUrl,
-        );
-        console.warn('Could not generate recovery link, status:', res.status);
-        return json({ success: false, error: 'Could not generate reset link' }, 500);
-      }
-
+    if (recovery.ok && recovery.actionUrl) {
+      // ── Path A: user exists in auth.users → send password reset email ────
       const { ok, status } = await sendEmail(
         email,
         'Reset your PropSpera password',
-        buildResetHtml(firstName, actionUrl, year),
+        buildResetHtml(firstName, recovery.actionUrl, year),
         resendKey,
       );
-
       if (!ok) {
         console.error(`Resend failed for reset (${status})`);
         return json({ success: false, error: 'Failed to send reset email' }, 500);
       }
-
       console.log(`✅ Password reset email sent to ${email}`);
       return json({ success: true, type: 'reset' });
-    } else {
-      // ── Path B: user not in auth.users → invite (creates auth row) ──────
-      const actionUrl = await generateLink('invite', email, redirectTo, serviceKey, supabaseUrl);
-
-      if (!actionUrl) {
-        console.error(`Could not generate invite link for ${email}`);
-        return json({ success: false, error: 'Could not generate invite link' }, 500);
-      }
-
-      const { ok, status } = await sendEmail(
-        email,
-        'Set up your PropSpera account',
-        buildInviteHtml(firstName, actionUrl, year),
-        resendKey,
-      );
-
-      if (!ok) {
-        console.error(`Resend failed for invite (${status})`);
-        return json({ success: false, error: 'Failed to send invite email' }, 500);
-      }
-
-      console.log(`✅ Invite email sent to ${email} (new auth user created)`);
-      return json({ success: true, type: 'invite' });
     }
+
+    // ── Step 2: recovery failed → user not in auth.users → send invite ────
+    // generate_link type=invite creates the auth.users row automatically.
+    console.log(`Recovery failed (${recovery.status}), attempting invite for: ${email}`);
+    const invite = await generateLink('invite', email, redirectTo, serviceKey, supabaseUrl);
+
+    if (!invite.ok || !invite.actionUrl) {
+      console.error(`Could not generate invite link for ${email} (status: ${invite.status})`);
+      return json({ success: false, error: 'Could not generate set-password link' }, 500);
+    }
+
+    const { ok, status } = await sendEmail(
+      email,
+      'Set up your PropSpera account',
+      buildInviteHtml(firstName, invite.actionUrl, year),
+      resendKey,
+    );
+    if (!ok) {
+      console.error(`Resend failed for invite (${status})`);
+      return json({ success: false, error: 'Failed to send invite email' }, 500);
+    }
+    console.log(`✅ Invite email sent to ${email} (auth user created)`);
+    return json({ success: true, type: 'invite' });
   } catch (err) {
     console.error('Unhandled error in reset-or-invite:', err);
     return json({ success: false, error: 'Internal server error' }, 500);
