@@ -15,6 +15,7 @@ interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   resendVerificationEmail: () => Promise<{ error: Error | null }>;
   refreshUser: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
 }
  
  
@@ -795,6 +796,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const profile = await fetchAppUser(newSession.user.id);
           if (mounted && profile) {
             setAppUser(profile);
+          } else if (event === 'SIGNED_IN' && !profile) {
+            // New OAuth user — no public.users row yet. Auto-create with role buyer.
+            const { user } = newSession;
+            const isOAuth = user.app_metadata?.provider !== 'email';
+            if (isOAuth && mounted) {
+              try {
+                const fullName =
+                  user.user_metadata?.full_name ??
+                  user.user_metadata?.name ??
+                  user.email?.split('@')[0] ??
+                  'User';
+                await supabase.from('users').upsert(
+                  { auth_id: user.id, email: user.email, full_name: fullName, role: 'buyer' },
+                  { onConflict: 'auth_id' }
+                );
+                const newProfile = await fetchAppUser(user.id);
+                if (mounted && newProfile) setAppUser(newProfile);
+              } catch (oauthErr) {
+                console.warn('Could not auto-create OAuth user profile:', oauthErr);
+              }
+            }
           }
         } catch (err) {
           console.warn('Error fetching profile after auth change:', err);
@@ -874,6 +896,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: error as Error };
     }
   };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: { access_type: 'offline', prompt: 'select_account' },
+        },
+      });
+      if (error) return { error };
+      return { error: null };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
  
   const signOut = async () => {
     try { await supabase.auth.signOut(); } catch (err) { console.warn('Error during sign out:', err); }
@@ -940,7 +978,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
  
-  const value = { user, appUser, session, loading, signUp, signIn, signOut, resetPassword, updatePassword, resendVerificationEmail, refreshUser };
+  const value = { user, appUser, session, loading, signUp, signIn, signOut, resetPassword, updatePassword, resendVerificationEmail, refreshUser, signInWithGoogle };
  
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
