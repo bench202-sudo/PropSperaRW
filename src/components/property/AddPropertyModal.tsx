@@ -40,10 +40,20 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     images: [] as File[]
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [validationBanner, setValidationBanner] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeSuccess, setGeocodeSuccess] = useState(false);
   const [geocodeError, setGeocodeError] = useState(false);
   const geocodeTimeout = useRef<any>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll banner into view after React renders it
+  useEffect(() => {
+    if (validationBanner && bannerRef.current) {
+      bannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [validationBanner]);
  
   const isLand = formData.property_type === 'land';
  
@@ -114,6 +124,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    if (validationBanner) setValidationBanner(false);
     // Auto-geocode when address is typed
     if (field === 'address') {
       setGeocodeError(false);
@@ -135,6 +146,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     const files = Array.from(e.target.files || []);
     setFormData(prev => ({ ...prev, images: [...prev.images, ...files].slice(0, 10) }));
     if (errors.images) setErrors(prev => ({ ...prev, images: '' }));
+    if (validationBanner) setValidationBanner(false);
   };
  
   const removeImage = (index: number) => {
@@ -167,7 +179,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
   };
  
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      setValidationBanner(true);
+      return;
+    }
+    setValidationBanner(false);
     if (!agentId) { setError('Agent verification required.'); return; }
     setIsSubmitting(true);
     setError(null);
@@ -224,7 +240,21 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           </div>
         )}
  
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-5">
+          {validationBanner && (
+            <div ref={bannerRef} className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircleIcon size={20} className="text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-red-700 mb-1">Please fill in all required fields</p>
+                <ul className="text-xs text-red-600 list-disc list-inside space-y-0.5">
+                  {Object.values(errors).filter(Boolean).map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+              <button onClick={() => setValidationBanner(false)} className="text-red-400 hover:text-red-600"><XIcon size={16} /></button>
+            </div>
+          )}
           {/* Images */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Property Images * (max 10)</label>
