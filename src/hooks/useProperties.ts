@@ -71,7 +71,8 @@ export const useProperties = (userRole?: string | null) => {
   const fetchProperties = useCallback(async () => {
     setLoading(true);
     setError(null);
- 
+    console.log('[useProperties] Fetching properties...');
+
     try {
       // Fetch properties, agents, and users ALL IN PARALLEL
       const [propsResult, agentsResult] = await Promise.all([
@@ -79,12 +80,15 @@ export const useProperties = (userRole?: string | null) => {
           .from('properties')
           .select('*')
           .eq('hidden', false)
+          .eq('status', 'approved')
           .order('created_at', { ascending: false }),
         supabase
           .from('agents')
           .select('*')
       ]);
- 
+
+      console.log('[useProperties] properties rows:', propsResult.data?.length ?? 0, 'error:', propsResult.error?.message);
+
       if (propsResult.error) {
         console.error('Error fetching properties:', propsResult.error);
         setProperties([]);
@@ -150,11 +154,13 @@ export const useProperties = (userRole?: string | null) => {
       );
  
       const transformedProperties = propsData.map((p: any) => transformProperty(p, agentsMap));
+      console.log('[useProperties] transformed:', transformedProperties.length);
       setProperties(transformedProperties);
     } catch (err) {
       console.error('Error fetching properties:', err);
       setProperties([]);
     } finally {
+      console.log('[useProperties] done, loading=false');
       setLoading(false);
     }
   }, []);
@@ -178,7 +184,8 @@ export const useAgents = () => {
   const fetchAgents = useCallback(async () => {
     setLoading(true);
     setError(null);
- 
+    console.log('[useAgents] Fetching agents...');
+
     try {
       // Fetch agents and users IN PARALLEL
       const { data: agentsData, error: agentsError } = await supabase
@@ -187,7 +194,9 @@ export const useAgents = () => {
         .eq('verification_status', 'approved')
         .eq('is_active', true)
         .order('rating', { ascending: false });
- 
+
+      console.log('[useAgents] rows:', agentsData?.length ?? 0, 'error:', agentsError?.message);
+
       if (agentsError) {
         console.error('Error fetching agents:', agentsError);
         setAgents([]);

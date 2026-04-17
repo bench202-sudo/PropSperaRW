@@ -34,12 +34,26 @@ const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
     ? featuredProperties
     : approvedProperties.slice(0, 6);
  
-  if (displayProperties.length === 0) return null;
- 
+  // Show loading skeleton instead of silently rendering nothing
+  if (displayProperties.length === 0) {
+    return (
+      <section className="py-12 sm:py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-500 text-sm">Loading properties…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-12 sm:py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-end justify-between mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               {featuredProperties.length > 0 ? t('featuredProperties') : t('latestProperties')}
@@ -54,7 +68,7 @@ const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
             <ChevronRightIcon size={20} />
           </button>
         </div>
- 
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayProperties.slice(0, 6).map((property) => (
             <PropertyCard
@@ -70,7 +84,7 @@ const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
             />
           ))}
         </div>
- 
+
         <button onClick={onViewAll}
           className="sm:hidden w-full mt-6 py-3 bg-white border border-gray-200 rounded-xl text-blue-600 font-semibold hover:bg-gray-50 transition-colors">
           {t('viewAllProperties')}
