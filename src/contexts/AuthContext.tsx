@@ -972,10 +972,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // /auth/callback is a dedicated page that processes the OAuth response.
-          // Add this EXACT URL to Supabase → Auth → URL Configuration → Redirect URLs:
-          //   https://prop-spera-rw.vercel.app/auth/callback
           redirectTo: `${window.location.origin}/auth/callback`,
+          // Always show Google account picker so the user can choose/switch accounts.
+          // This also ensures sign-up and sign-in flows behave distinctly.
+          queryParams: { prompt: 'select_account' },
         },
       });
       if (error) return { error };
