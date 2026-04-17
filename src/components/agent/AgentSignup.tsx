@@ -14,13 +14,13 @@ interface AgentSignupProps {
 type Step = 'personal' | 'professional' | 'documents' | 'review';
  
 const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
-  const { appUser, refreshUser } = useAuth();
+  const { appUser, user, refreshUser } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    full_name: appUser?.full_name || '',
-    email: appUser?.email || '',
+    full_name: appUser?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || '',
+    email: appUser?.email || user?.email || '',
     phone: appUser?.phone || '',
     company_name: '',
     license_number: '',
