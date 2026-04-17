@@ -991,7 +991,7 @@ const InstallPrompt: React.FC = () => {
  
 const AppLayout: React.FC = () => {
   // Auth state from context
-  const { appUser, loading: authLoading, signOut } = useAuth();
+  const { appUser, loading: authLoading, signOut, oauthError, clearOauthError } = useAuth();
   const { t } = useLanguage();
   
   // Secondary safety net: force the app to render after 10 seconds even if auth is stuck
@@ -1115,6 +1115,16 @@ const AppLayout: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'login' | 'signup'>('login');
   const [agentSignupIntent, setAgentSignupIntent] = useState(false);
+
+  // When an OAuth error is set (e.g. Google sign-in provisioning failure),
+  // automatically open the login modal so the user sees the error message.
+  useEffect(() => {
+    if (oauthError) {
+      setAuthModalView('login');
+      setAgentSignupIntent(false);
+      setShowAuthModal(true);
+    }
+  }, [oauthError]);
   const [showMessaging, setShowMessaging] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [showAgentDashboard, setShowAgentDashboard] = useState(false);
@@ -2103,9 +2113,10 @@ const AppLayout: React.FC = () => {
       {/* Modals */}
       {showAuthModal && (
         <AuthModal
-          onClose={() => { setShowAuthModal(false); setAgentSignupIntent(false); }}
+          onClose={() => { setShowAuthModal(false); setAgentSignupIntent(false); clearOauthError(); }}
           initialView={authModalView}
           agentSignupIntent={agentSignupIntent}
+          initialError={oauthError ?? undefined}
         />
       )}
  

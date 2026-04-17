@@ -16,6 +16,8 @@ interface AuthContextType {
   resendVerificationEmail: () => Promise<{ error: Error | null }>;
   refreshUser: () => Promise<void>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  oauthError: string | null;
+  clearOauthError: () => void;
 }
  
  
@@ -727,6 +729,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [oauthError, setOauthError] = useState<string | null>(null);
+  const clearOauthError = () => setOauthError(null);
   const initialLoadDone = useRef(false);
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('propspera_lang');
@@ -740,6 +744,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
   const t = (key: TranslationKey): string => translations[language][key] as string;
  
+  // Calls the oauth-provision edge function then retries fetchAppUser up to 3
+  // times (with increasing delays) to handle post-write replication lag.
+  const provisionOAuthUser = async (userId: string): Promise<AppUser | null> => {
+    try {
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke('oauth-provision');
+      console.log('🔧 oauth-provision result:', fnData, fnErr?.message);
+      if (fnErr) console.warn('oauth-provision error:', fnErr.message);
+      else if (fnData?.success === false) console.warn('oauth-provision logic error:', fnData.error);
+    } catch (err) {
+      console.warn('oauth-provision call threw:', err);
+    }
+    // Retry fetchAppUser — edge function write may not be immediately visible
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      const profile = await fetchAppUser(userId);
+      if (profile) return profile;
+    }
+    return null;
+  };
+
   const fetchAppUser = async (authId: string): Promise<AppUser | null> => {
     try {
       const result = await withTimeout(
@@ -797,26 +821,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (mounted && profile) {
             setAppUser(profile);
           } else if (!profile) {
-            // No public.users row matched this auth_id.
-            // The DB trigger on auth.users INSERT creates rows WITHOUT auth_id,
-            // so client-side updates are blocked by RLS. Use the oauth-provision
-            // edge function (service-role key) to link or create the profile.
             const { user } = newSession;
             const isOAuth = user.app_metadata?.provider !== 'email';
             if (isOAuth && mounted) {
-              try {
-                const { data, error: fnErr } = await supabase.functions.invoke('oauth-provision');
-                if (fnErr) {
-                  console.warn('oauth-provision invocation error:', fnErr.message);
-                } else if (data?.success === false) {
-                  console.warn('oauth-provision failed:', data.error);
-                } else {
-                  // Re-fetch via the normal path so appUser is always from the DB
-                  const newProfile = await fetchAppUser(user.id);
-                  if (mounted && newProfile) setAppUser(newProfile);
-                }
-              } catch (oauthErr) {
-                console.warn('Could not provision OAuth user profile:', oauthErr);
+              // OAuth user with no linked public.users row.
+              // Use service-role edge function + retry loop to handle the DB
+              // trigger that creates rows without auth_id (RLS blocks client updates).
+              const provisionedProfile = await provisionOAuthUser(user.id);
+              if (mounted && provisionedProfile) {
+                setAppUser(provisionedProfile);
+              } else if (mounted) {
+                // All retries exhausted — sign out and surface the error.
+                await supabase.auth.signOut();
+                setOauthError(
+                  'Google sign-in failed: we could not set up your account. ' +
+                  'Please try again or sign in with email and password.'
+                );
               }
             }
           }
@@ -891,8 +911,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
+      // Verify the user has a PropSpera profile. If not, they may have a Supabase
+      // auth account that was never completed through our sign-up flow.
+      if (data.user) {
+        const profile = await fetchAppUser(data.user.id);
+        if (!profile) {
+          await supabase.auth.signOut();
+          return {
+            error: new Error(
+              'No PropSpera account found for this email. Please sign up first.'
+            ),
+          };
+        }
+      }
       return { error: null };
     } catch (error) {
       return { error: error as Error };
@@ -980,7 +1013,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
  
-  const value = { user, appUser, session, loading, signUp, signIn, signOut, resetPassword, updatePassword, resendVerificationEmail, refreshUser, signInWithGoogle };
+  const value = { user, appUser, session, loading, signUp, signIn, signOut, resetPassword, updatePassword, resendVerificationEmail, refreshUser, signInWithGoogle, oauthError, clearOauthError };
  
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

@@ -10,6 +10,7 @@ interface AuthModalProps {
   onClose: () => void;
   initialView?: 'login' | 'signup' | 'forgot-password';
   agentSignupIntent?: boolean;
+  initialError?: string;
 }
  
 type AuthView = 'login' | 'signup' | 'forgot-password' | 'verification-sent' | 'reset-sent';
@@ -24,12 +25,12 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', agentSignupIntent = false }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', agentSignupIntent = false, initialError }) => {
   const { signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
   const [showPassword, setShowPassword] = useState(false);
   const [signupRole, setSignupRole] = useState<SignupRole>('buyer');
  
