@@ -796,8 +796,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const profile = await fetchAppUser(newSession.user.id);
           if (mounted && profile) {
             setAppUser(profile);
-          } else if (event === 'SIGNED_IN' && !profile) {
-            // New OAuth user — no public.users row yet. Auto-create with role buyer.
+          } else if (!profile) {
+            // No public.users row matched this auth_id.
+            // Covers: new OAuth users, AND existing email/password users signing in
+            // via Google for the first time (INITIAL_SESSION fires, not SIGNED_IN).
             const { user } = newSession;
             const isOAuth = user.app_metadata?.provider !== 'email';
             if (isOAuth && mounted) {
@@ -807,14 +809,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   user.user_metadata?.name ??
                   user.email?.split('@')[0] ??
                   'User';
-                await supabase.from('users').upsert(
-                  { auth_id: user.id, email: user.email, full_name: fullName, role: 'buyer' },
-                  { onConflict: 'auth_id' }
-                );
+
+                // Check if a row already exists for this email (email/password account).
+                // If so, update its auth_id to link the Google identity instead of
+                // inserting a duplicate that would violate the email unique constraint.
+                const { data: existingByEmail } = await supabase
+                  .from('users')
+                  .select('id')
+                  .eq('email', user.email)
+                  .maybeSingle();
+
+                if (existingByEmail) {
+                  await supabase
+                    .from('users')
+                    .update({ auth_id: user.id })
+                    .eq('email', user.email!);
+                } else {
+                  await supabase.from('users').insert({
+                    auth_id: user.id,
+                    email: user.email,
+                    full_name: fullName,
+                    role: 'buyer',
+                  });
+                }
+
                 const newProfile = await fetchAppUser(user.id);
                 if (mounted && newProfile) setAppUser(newProfile);
               } catch (oauthErr) {
-                console.warn('Could not auto-create OAuth user profile:', oauthErr);
+                console.warn('Could not provision OAuth user profile:', oauthErr);
               }
             }
           }
