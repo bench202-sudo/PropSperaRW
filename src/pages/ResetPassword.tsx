@@ -14,6 +14,22 @@ const ResetPassword: React.FC = () => {
   const [success, setSuccess] = useState(false);
 
   // Check if user has a valid session (came from reset link)
+
+useEffect(() => {
+  const checkSession = async () => {
+    // Give Supabase time to process the URL hash
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    if (!session) {
+      setError("Invalid or expired reset link");
+      setTimeout(() => navigate('/login'), 2000);
+    }
+  };
+
+  checkSession();
+}, [session, navigate]);
+
+{/*}
   useEffect(() => {
     if (!session) {
       // Give it a moment for the session to be established from the URL hash
@@ -25,6 +41,8 @@ const ResetPassword: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [session, navigate]);
+*/}
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
