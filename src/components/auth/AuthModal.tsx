@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { 
   XIcon, MailIcon, UserIcon, ShieldCheckIcon,
   EyeIcon, ChevronLeftIcon, CheckCircleIcon, AlertCircleIcon 
@@ -25,6 +25,7 @@ const GoogleIcon: React.FC = () => (
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', agentSignupIntent = false, initialError }) => {
   const { signIn, signUp, resetPassword, signInWithGoogle } = useAuth();
+  const { t } = useLanguage();
   const [view, setView] = useState<AuthView>(initialView);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -60,20 +61,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!fullName.trim()) { setError('Please enter your full name'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    if (password !== confirmPassword) { setError('Passwords do not match'); return; }
+    if (!fullName.trim()) { setError(t('errorEnterFullName')); return; }
+    if (password.length < 6) { setError(t('errorPasswordLength')); return; }
+    if (password !== confirmPassword) { setError(t('errorPasswordMatch')); return; }
     setLoading(true);
     const { error } = await signUp(email, password, fullName, 'buyer');
     if (error) { setError(error.message); setLoading(false); return; }
     setLoading(false);
     setView('verification-sent');
   };
- 
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email.trim()) { setError('Please enter your email address'); return; }
+    if (!email.trim()) { setError(t('errorEnterEmail')); return; }
     setLoading(true);
     const { error } = await resetPassword(email);
     if (error) { setError(error.message); setLoading(false); return; }
@@ -94,11 +95,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
         ) : (
           <GoogleIcon />
         )}
-        {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
+        {googleLoading ? t('googleRedirecting') : t('continueWithGoogle')}
       </button>
       <div className="relative flex items-center gap-3">
         <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">or</span>
+        <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('orDivider')}</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
     </>
@@ -111,23 +112,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
           <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <ShieldCheckIcon size={18} className="text-white" />
           </div>
-          <p className="text-sm text-blue-800">Sign in first, then complete your agent application.</p>
+          <p className="text-sm text-blue-800">{t('agentSignInHint')}</p>
         </div>
       )}
       {renderGoogleButton()}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
         <div className="relative">
           <MailIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('emailPlaceholder')} required
             className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
         <div className="relative">
           <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password" required
+            placeholder={t('passwordPlaceholder')} required
             className="w-full pl-4 pr-12 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             <EyeIcon size={18} />
@@ -135,7 +136,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
         </div>
       </div>
       <div className="flex justify-end">
-        <button type="button" onClick={() => setView('forgot-password')} className="text-sm text-blue-600 hover:text-blue-700">Forgot password?</button>
+        <button type="button" onClick={() => setView('forgot-password')} className="text-sm text-blue-600 hover:text-blue-700">{t('forgotPassword')}</button>
       </div>
       {error && (
         <div className="flex items-start gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
@@ -143,11 +144,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
         </div>
       )}
       <button type="submit" disabled={loading} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50">
-        {loading ? 'Signing in...' : 'Sign In'}
+        {loading ? t('signingIn') : t('signInBtn')}
       </button>
       <p className="text-center text-sm text-gray-500">
-        Don't have an account?{' '}
-        <button type="button" onClick={() => { setError(null); setView('signup'); }} className="text-blue-600 font-medium hover:text-blue-700">Sign up</button>
+        {t('noAccount')}{' '}
+        <button type="button" onClick={() => { setError(null); setView('signup'); }} className="text-blue-600 font-medium hover:text-blue-700">{t('signUp')}</button>
       </p>
     </form>
   );
@@ -160,31 +161,31 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
           <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
             <ShieldCheckIcon size={18} className="text-white" />
           </div>
-          <p className="text-sm text-blue-800">Create an account first, then complete your agent application after signing in.</p>
+          <p className="text-sm text-blue-800">{t('agentSignupHint')}</p>
         </div>
       )}
- 
+
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('fullName')}</label>
         <div className="relative">
           <UserIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" required
+          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('fullNamePlaceholder')} required
             className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
         <div className="relative">
           <MailIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('emailPlaceholder')} required
             className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
         <div className="relative">
           <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 6 characters" required minLength={6}
+            placeholder={t('passwordMinLength')} required minLength={6}
             className="w-full pl-4 pr-12 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             <EyeIcon size={18} />
@@ -192,9 +193,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('confirmPassword')}</label>
         <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm your password" required
+          placeholder={t('confirmPasswordPlaceholder')} required
           className="w-full px-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
       {error && (
@@ -204,23 +205,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
       )}
       <button type="submit" disabled={loading}
         className="w-full py-3.5 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 bg-blue-600 hover:bg-blue-700">
-        {loading ? 'Creating account...' : 'Create Account'}
+        {loading ? t('creatingAccount') : t('createAccountBtn')}
       </button>
       <p className="text-center text-sm text-gray-500">
-        Already have an account?{' '}
-        <button type="button" onClick={() => { setError(null); setView('login'); }} className="text-blue-600 font-medium hover:text-blue-700">Sign in</button>
+        {t('hasAccount')}{' '}
+        <button type="button" onClick={() => { setError(null); setView('login'); }} className="text-blue-600 font-medium hover:text-blue-700">{t('signInBtn')}</button>
       </p>
     </form>
   );
- 
+
   const renderForgotPassword = () => (
     <form onSubmit={handleForgotPassword} className="space-y-4">
-      <p className="text-gray-500 text-sm mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+      <p className="text-gray-500 text-sm mb-4">{t('forgotPasswordDesc')}</p>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
         <div className="relative">
           <MailIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('emailPlaceholder')} required
             className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
@@ -230,7 +231,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
         </div>
       )}
       <button type="submit" disabled={loading} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50">
-        {loading ? 'Sending...' : 'Send Reset Link'}
+        {loading ? t('sending') : t('sendResetLink')}
       </button>
     </form>
   );
@@ -240,43 +241,43 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
       <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100">
         <CheckCircleIcon size={32} className="text-green-600" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">Check your email</h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">{t('checkYourEmail')}</h3>
       <p className="text-gray-500 mb-6">
-        We've sent a verification link to <strong>{email}</strong>.
-        {agentSignupIntent && ' Once verified, sign in and click "Become a Verified Agent" to complete your application.'}
+        {t('verificationSentTo')} <strong>{email}</strong>.
+        {agentSignupIntent && ` ${t('agentVerificationHint')}`}
       </p>
       <button onClick={onClose} className="w-full py-3.5 text-white rounded-xl font-semibold transition-colors bg-blue-600 hover:bg-blue-700">
-        Got it
+        {t('gotIt')}
       </button>
     </div>
   );
- 
+
   const renderResetSent = () => (
     <div className="text-center py-4">
       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <MailIcon size={32} className="text-blue-600" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">Check your email</h3>
-      <p className="text-gray-500 mb-6">We've sent a password reset link to <strong>{email}</strong>.</p>
-      <button onClick={() => setView('login')} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">Back to Sign In</button>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">{t('checkYourEmail')}</h3>
+      <p className="text-gray-500 mb-6">{t('resetLinkSentTo')} <strong>{email}</strong>.</p>
+      <button onClick={() => setView('login')} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">{t('backToSignIn')}</button>
     </div>
   );
- 
+
   const getTitle = () => {
     switch (view) {
-      case 'login': return agentSignupIntent ? 'Sign in to apply' : 'Welcome back';
-      case 'signup': return agentSignupIntent ? 'Create your account' : 'Create your account';
-      case 'forgot-password': return 'Reset password';
-      case 'verification-sent': return 'Verify your email';
-      case 'reset-sent': return 'Email sent';
+      case 'login': return agentSignupIntent ? t('signInToApply') : t('welcomeBack');
+      case 'signup': return t('createAccount');
+      case 'forgot-password': return t('resetPasswordTitle');
+      case 'verification-sent': return t('verifyYourEmail');
+      case 'reset-sent': return t('emailSent');
       default: return '';
     }
   };
- 
+
   const getSubtitle = () => {
     switch (view) {
-      case 'login': return agentSignupIntent ? 'Then complete your agent application' : 'Sign in to PropSpera';
-      case 'signup': return 'Join PropSpera today';
+      case 'login': return agentSignupIntent ? t('agentSignInSubtitle') : t('signInSubtitle');
+      case 'signup': return t('joinPropSpera');
       default: return '';
     }
   };
