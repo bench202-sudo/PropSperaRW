@@ -73,6 +73,9 @@ export const useProperties = (userRole?: string | null) => {
     setError(null);
     console.log('[useProperties] Fetching properties...');
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     try {
       // Fetch properties, agents, and users ALL IN PARALLEL
       const [propsResult, agentsResult] = await Promise.all([
@@ -81,11 +84,14 @@ export const useProperties = (userRole?: string | null) => {
           .select('*')
           .eq('hidden', false)
           .eq('status', 'approved')
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
+          .abortSignal(controller.signal),
         supabase
           .from('agents')
           .select('*')
+          .abortSignal(controller.signal),
       ]);
+      clearTimeout(timeoutId);
 
       console.log('[useProperties] properties rows:', propsResult.data?.length ?? 0, 'error:', propsResult.error?.message);
 
@@ -157,6 +163,7 @@ export const useProperties = (userRole?: string | null) => {
       console.log('[useProperties] transformed:', transformedProperties.length);
       setProperties(transformedProperties);
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('Error fetching properties:', err);
       setProperties([]);
     } finally {
@@ -186,6 +193,9 @@ export const useAgents = () => {
     setError(null);
     console.log('[useAgents] Fetching agents...');
 
+    const agentController = new AbortController();
+    const agentTimeoutId = setTimeout(() => agentController.abort(), 10000);
+
     try {
       // Fetch agents and users IN PARALLEL
       const { data: agentsData, error: agentsError } = await supabase
@@ -193,7 +203,9 @@ export const useAgents = () => {
         .select('*')
         .eq('verification_status', 'approved')
         .eq('is_active', true)
-        .order('rating', { ascending: false });
+        .order('rating', { ascending: false })
+        .abortSignal(agentController.signal);
+      clearTimeout(agentTimeoutId);
 
       console.log('[useAgents] rows:', agentsData?.length ?? 0, 'error:', agentsError?.message);
 
@@ -252,6 +264,7 @@ export const useAgents = () => {
  
       setAgents(transformedAgents);
     } catch (err) {
+      clearTimeout(agentTimeoutId);
       console.error('Error fetching agents:', err);
       setAgents([]);
     } finally {
