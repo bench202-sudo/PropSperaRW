@@ -783,6 +783,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
  
   useEffect(() => {
+    // ── Detect OAuth errors in the URL (query params or hash) ─────────────
+    // Supabase redirects back to our app with ?error=... or #error=... when
+    // the OAuth callback fails (e.g. email conflict, provider error, etc.).
+    const detectUrlOAuthError = () => {
+      const search = new URLSearchParams(window.location.search);
+      const hash   = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const errCode = search.get('error') ?? hash.get('error');
+      const errDesc = search.get('error_description') ?? hash.get('error_description');
+      if (errCode) {
+        // Map common Supabase/OAuth error codes to friendly messages
+        const friendlyMsg: Record<string, string> = {
+          'access_denied':        'Google sign-in was cancelled.',
+          'server_error':         'Google sign-in failed due to a server error. Please try again.',
+          'user_already_exists':  'This email is already registered. Please sign in with email and password instead.',
+          'email_exists':         'This email is already registered. Please sign in with email and password instead.',
+          'user_banned':          'This account has been suspended.',
+          'over_email_send_rate_limit': 'Too many attempts. Please wait a few minutes and try again.',
+        };
+        const msg = friendlyMsg[errCode] ?? (errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : `Sign-in error: ${errCode}`);
+        setOauthError(msg);
+        // Clean up the URL so the error doesn't persist on refresh
+        const clean = window.location.pathname;
+        window.history.replaceState({}, '', clean);
+      }
+    };
+    detectUrlOAuthError();
     let mounted = true;
  
     const safetyTimeout = setTimeout(() => {
@@ -913,11 +939,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
-      // Verify the user has a PropSpera profile. If not, they may have a Supabase
-      // auth account that was never completed through our sign-up flow.
+      // Check whether this auth account has a PropSpera profile.
+      // Use a direct DB query (not fetchAppUser) so we can distinguish
+      // "no rows" from a transient fetch error.
       if (data.user) {
-        const profile = await fetchAppUser(data.user.id);
-        if (!profile) {
+        const { data: profile, error: profileErr } = await supabase
+          .from('users')
+          .select('id')
+          .eq('auth_id', data.user.id)
+          .maybeSingle();
+        if (!profileErr && profile === null) {
+          // Confirmed: row does not exist — not a PropSpera account
           await supabase.auth.signOut();
           return {
             error: new Error(
@@ -925,6 +957,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ),
           };
         }
+        // If profileErr is set (network/timeout), allow sign-in anyway —
+        // onAuthStateChange will load the profile once the session settles.
       }
       return { error: null };
     } catch (error) {

@@ -16,6 +16,10 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     storageKey: 'propspera-auth',
     storage: window.localStorage,
+    // Use implicit flow: tokens returned directly in URL hash after OAuth.
+    // Avoids the PKCE code-exchange step which can silently fail when
+    // the code_verifier is lost across the browser redirect.
+    flowType: 'implicit',
   }
 });
 //end added call 
