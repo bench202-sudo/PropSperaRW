@@ -40,20 +40,20 @@ const AuthCallback: React.FC = () => {
       if (errCode) {
         const friendly: Record<string, string> = {
           access_denied:           'Google sign-in was cancelled.',
-          server_error:            'Google sign-in failed. Please try again.',
           user_already_exists:     'This email already has a PropSpera account. Please sign in with email and password instead.',
           email_exists:            'This email already has a PropSpera account. Please sign in with email and password instead.',
         };
-        const msg = friendly[errCode] ??
-          (errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : `Sign-in error: ${errCode}`);
-
+        // Always include the raw description so we can diagnose server_error
+        const rawDesc = errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : '';
+        const msg = friendly[errCode] ?? (rawDesc || `Sign-in error: ${errCode}`);
+        console.error('OAuth callback error:', errCode, rawDesc);
         if (!cancelled) {
           setIsError(true);
           setMessage(msg);
         }
         // Pass the error to the main page so AuthModal shows it
         setTimeout(() => {
-          if (!cancelled) navigate('/?auth_error=' + encodeURIComponent(msg), { replace: true });
+          if (!cancelled) navigate('/?auth_error=' + encodeURIComponent(msg) + '&auth_error_code=' + encodeURIComponent(errCode), { replace: true });
         }, 2500);
         return;
       }

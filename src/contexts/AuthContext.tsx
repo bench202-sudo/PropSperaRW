@@ -792,16 +792,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const errCode = search.get('error') ?? hash.get('error');
       const errDesc = search.get('error_description') ?? hash.get('error_description');
       if (errCode) {
-        // Map common Supabase/OAuth error codes to friendly messages
+        const rawDesc = errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : '';
+        console.error('🔴 OAuth error in URL — code:', errCode, '| description:', rawDesc);
         const friendlyMsg: Record<string, string> = {
           'access_denied':        'Google sign-in was cancelled.',
-          'server_error':         'Google sign-in failed due to a server error. Please try again.',
           'user_already_exists':  'This email is already registered. Please sign in with email and password instead.',
           'email_exists':         'This email is already registered. Please sign in with email and password instead.',
           'user_banned':          'This account has been suspended.',
           'over_email_send_rate_limit': 'Too many attempts. Please wait a few minutes and try again.',
         };
-        const msg = friendlyMsg[errCode] ?? (errDesc ? decodeURIComponent(errDesc.replace(/\+/g, ' ')) : `Sign-in error: ${errCode}`);
+        // For server_error and unknowns, show the raw description so we can diagnose
+        const msg = friendlyMsg[errCode] ?? (rawDesc || `Sign-in error (${errCode}). Check browser console for details.`);
         setOauthError(msg);
         // Clean up the URL so the error doesn't persist on refresh
         const clean = window.location.pathname;
