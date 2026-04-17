@@ -1115,6 +1115,7 @@ const AppLayout: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'login' | 'signup'>('login');
   const [agentSignupIntent, setAgentSignupIntent] = useState(false);
+  const [localAuthError, setLocalAuthError] = useState<string | null>(null);
 
   // When an OAuth error is set (e.g. Google sign-in provisioning failure),
   // automatically open the login modal so the user sees the error message.
@@ -1125,6 +1126,20 @@ const AppLayout: React.FC = () => {
       setShowAuthModal(true);
     }
   }, [oauthError]);
+
+  // AuthCallback page passes errors via ?auth_error= query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authErr = params.get('auth_error');
+    if (authErr) {
+      const msg = decodeURIComponent(authErr);
+      setLocalAuthError(msg);
+      setAuthModalView('login');
+      setAgentSignupIntent(false);
+      setShowAuthModal(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
   const [showMessaging, setShowMessaging] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [showAgentDashboard, setShowAgentDashboard] = useState(false);
@@ -2113,10 +2128,10 @@ const AppLayout: React.FC = () => {
       {/* Modals */}
       {showAuthModal && (
         <AuthModal
-          onClose={() => { setShowAuthModal(false); setAgentSignupIntent(false); clearOauthError(); }}
+          onClose={() => { setShowAuthModal(false); setAgentSignupIntent(false); clearOauthError(); setLocalAuthError(null); }}
           initialView={authModalView}
           agentSignupIntent={agentSignupIntent}
-          initialError={oauthError ?? undefined}
+          initialError={oauthError ?? localAuthError ?? undefined}
         />
       )}
  

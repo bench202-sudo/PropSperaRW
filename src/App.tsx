@@ -8,8 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/ResetPassword";
-
+import ResetPassword from "./pages/ResetPassword";import AuthCallback from './pages/AuthCallback';
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -22,6 +21,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
