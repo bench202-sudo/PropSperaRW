@@ -11,7 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  resetPassword: (email: string, full_name?: string) => Promise<{ error: Error | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
   resendVerificationEmail: () => Promise<{ error: Error | null }>;
   refreshUser: () => Promise<void>;
@@ -876,12 +876,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
   };
  
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string, full_name?: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+      // Use the reset-or-invite edge function so that users imported from
+      // external platforms (who exist in public.users but NOT in auth.users)
+      // also receive an email. The function detects whether the auth user
+      // exists and either sends a password-recovery link or an invite link.
+      const { data, error } = await supabase.functions.invoke('reset-or-invite', {
+        body: { email, full_name: full_name ?? '' },
       });
       if (error) return { error };
+      if (data && data.success === false) {
+        return { error: new Error(data.error ?? 'Failed to send reset email') };
+      }
       return { error: null };
     } catch (error) {
       return { error: error as Error };
