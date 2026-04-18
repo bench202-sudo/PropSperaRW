@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { useSavedSearches } from '@/hooks/useNotifications';
 import { XIcon, SearchIcon, CheckCircleIcon, AlertCircleIcon, BellIcon } from '@/components/icons/Icons';
 import { SearchFilters } from '@/types';
@@ -12,6 +12,7 @@ interface SavedSearchModalProps {
 
 const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, onSuccess }) => {
   const { appUser } = useAuth();
+  const { t } = useLanguage();
   const { saveSearch } = useSavedSearches(appUser?.id || null);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -66,8 +67,8 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               <BellIcon size={18} className="text-blue-600" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 text-sm">Save Search & Get Alerts</h3>
-              <p className="text-[11px] text-gray-500">Get notified when matching properties are listed</p>
+              <h3 className="font-bold text-gray-900 text-sm">{t('saveSearchTitle')}</h3>
+              <p className="text-[11px] text-gray-500">{t('getNotifiedWhenMatching')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
@@ -82,9 +83,9 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <CheckCircleIcon size={28} className="text-green-600" />
               </div>
-              <h4 className="font-bold text-gray-900 mb-1">Search Saved!</h4>
+              <h4 className="font-bold text-gray-900 mb-1">{t('searchSavedSuccess')}</h4>
               <p className="text-sm text-gray-500">
-                You'll receive email notifications when matching properties are listed.
+                {t('willReceiveAlerts')}
               </p>
             </div>
           ) : (
@@ -92,7 +93,7 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               {/* Current Filters Preview */}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Current Search Criteria
+                  {t('currentSearchCriteriaLabel')}
                 </label>
                 <div className="bg-gray-50 rounded-xl p-3">
                   {filterSummary.length > 0 ? (
@@ -104,7 +105,7 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">All properties (no filters applied)</p>
+                    <p className="text-sm text-gray-500">{t('noFiltersApplied')}</p>
                   )}
                 </div>
               </div>
@@ -112,7 +113,7 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               {/* Search Name */}
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Name this search (optional)
+                  {t('nameThisSearch')}
                 </label>
                 <input
                   type="text"
@@ -128,8 +129,7 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               <div className="flex items-start gap-2.5 p-3 bg-blue-50 rounded-xl">
                 <SearchIcon size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-blue-700 leading-relaxed">
-                  PropSpera will monitor new listings and send you an email when a property matching these criteria is added. 
-                  You can manage your saved searches in Notification Settings.
+                  {t('savedSearchInfoText')}
                 </p>
               </div>
 
@@ -150,7 +150,7 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -160,12 +160,12 @@ const SavedSearchModal: React.FC<SavedSearchModalProps> = ({ filters, onClose, o
               {saving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Saving...
+                  {t('saving')}
                 </>
               ) : (
                 <>
                   <BellIcon size={14} />
-                  Save & Get Alerts
+                  {t('saveAndGetAlerts')}
                 </>
               )}
             </button>

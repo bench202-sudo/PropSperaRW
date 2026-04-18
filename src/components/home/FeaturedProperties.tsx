@@ -42,7 +42,7 @@ const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-500 text-sm">Loading properties…</p>
+              <p className="text-gray-500 text-sm">{t('loadingProperties')}</p>
             </div>
           </div>
         </div>

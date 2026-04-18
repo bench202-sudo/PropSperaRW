@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import {
   useNotificationPreferences,
   useSavedSearches,
@@ -155,6 +155,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'preferences' | 'saved_searches' | 'history'>('preferences');
+  const { t } = useLanguage();
 
   // Sync preferences to local state
   useEffect(() => {
@@ -223,8 +224,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               <BellIcon size={20} className="text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Notification Settings</h2>
-              <p className="text-xs text-gray-500">Manage your email alerts and saved searches</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('notificationSettings')}</h2>
+              <p className="text-xs text-gray-500">{t('manageAlertsDesc')}</p>
             </div>
           </div>
           <button
@@ -238,8 +239,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
         {/* Tabs */}
         <div className="flex border-b border-gray-100 px-6">
           {[
-            { id: 'preferences' as const, label: 'Email Preferences', icon: <MailIcon size={14} /> },
-            { id: 'saved_searches' as const, label: 'Saved Searches', icon: <SearchIcon size={14} />, count: searches.length },
+            { id: 'preferences' as const, label: t('emailPreferencesTab'), icon: <MailIcon size={14} /> },
+            { id: 'saved_searches' as const, label: t('savedSearchesTab'), icon: <SearchIcon size={14} />, count: searches.length },
           ].map(tab => (
             <button
               key={tab.id}
@@ -268,7 +269,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               {/* Email Address */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Notification Email Address
+                  {t('notificationEmailLabel')}
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -286,7 +287,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                     disabled={testSending || !email}
                     className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 whitespace-nowrap"
                   >
-                    {testSending ? 'Sending...' : 'Send Test'}
+                    {testSending ? t('sending') : t('sendTest')}
                   </button>
                 </div>
                 {testResult && (
@@ -299,12 +300,12 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
 
               {/* Property Alerts */}
               <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Property Alerts</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">{t('propertyAlertsSection')}</h3>
                 <div className="space-y-3">
                   <NotificationTypeCard
                     icon={<SearchIcon size={18} className="text-blue-600" />}
-                    title="New Property Matches"
-                    description="Get notified when a new property matching your saved search criteria is listed on PropSpera."
+                    title={t('newPropertyMatchesTitle')}
+                    description={t('newPropertyMatchesDesc')}
                     enabled={localPrefs?.new_property_match ?? true}
                     onChange={(val) => handleToggle('new_property_match', val)}
                     color="bg-blue-100"
@@ -317,8 +318,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                         <polyline points="17 6 23 6 23 12" />
                       </svg>
                     }
-                    title="Price Drop Alerts"
-                    description="Receive alerts when a property you've favorited has a price reduction."
+                    title={t('priceDropAlertsTitle')}
+                    description={t('priceDropAlertsDesc')}
                     enabled={localPrefs?.price_drop ?? true}
                     onChange={(val) => handleToggle('price_drop', val)}
                     color="bg-emerald-100"
@@ -330,8 +331,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                       </svg>
                     }
-                    title="Favorite Property Updates"
-                    description="Get notified when a favorited property's status changes (sold, rented, or back on market)."
+                    title={t('favoriteUpdatesTitle')}
+                    description={t('favoriteUpdatesDesc')}
                     enabled={localPrefs?.favorite_status_change ?? true}
                     onChange={(val) => handleToggle('favorite_status_change', val)}
                     color="bg-amber-100"
@@ -342,7 +343,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
 
               {/* Communication Alerts */}
               <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Communication</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">{t('communicationSection')}</h3>
                 <div className="space-y-3">
                   <NotificationTypeCard
                     icon={
@@ -350,8 +351,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
                     }
-                    title="Agent Inquiry Responses"
-                    description="Receive an email when an agent responds to your property inquiry."
+                    title={t('agentInquiryResponsesTitle')}
+                    description={t('agentInquiryResponsesDesc')}
                     enabled={localPrefs?.inquiry_response ?? true}
                     onChange={(val) => handleToggle('inquiry_response', val)}
                     color="bg-purple-100"
@@ -362,7 +363,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
 
               {/* Digest & Marketing */}
               <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Digest & Marketing</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">{t('digestMarketingSection')}</h3>
                 <div className="space-y-3">
                   <NotificationTypeCard
                     icon={
@@ -373,8 +374,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                         <line x1="3" y1="10" x2="21" y2="10" />
                       </svg>
                     }
-                    title="Weekly Digest"
-                    description="Receive a weekly summary of new listings, price changes, and market updates."
+                    title={t('weeklyDigestTitle')}
+                    description={t('weeklyDigestDesc')}
                     enabled={localPrefs?.weekly_digest ?? false}
                     onChange={(val) => handleToggle('weekly_digest', val)}
                     color="bg-indigo-100"
@@ -387,8 +388,8 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                         <line x1="7" y1="7" x2="7.01" y2="7" />
                       </svg>
                     }
-                    title="Marketing & Promotions"
-                    description="Receive occasional emails about new features, tips, and special offers."
+                    title={t('marketingPromoTitle')}
+                    description={t('marketingPromoDesc')}
                     enabled={localPrefs?.marketing_emails ?? false}
                     onChange={(val) => handleToggle('marketing_emails', val)}
                     color="bg-pink-100"
@@ -401,7 +402,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               {saveSuccess && (
                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
                   <CheckCircleIcon size={16} />
-                  Preferences saved successfully!
+                  {t('preferencesSaved')}
                 </div>
               )}
               {saveError && (
@@ -417,9 +418,9 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">Your Saved Searches</h3>
+                  <h3 className="text-sm font-bold text-gray-900">{t('yourSavedSearches')}</h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Active searches will trigger email notifications when matching properties are listed.
+                    {t('savedSearchesDesc')}
                   </p>
                 </div>
               </div>
@@ -444,9 +445,9 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <SearchIcon size={24} className="text-gray-400" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-1">No saved searches yet</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1">{t('noSavedSearchesYet')}</h4>
                   <p className="text-sm text-gray-500 max-w-sm mx-auto">
-                    When browsing properties, use the "Save Search" button to save your filter criteria and get notified about new matches.
+                    {t('noSavedSearchesDesc')}
                   </p>
                 </div>
               )}

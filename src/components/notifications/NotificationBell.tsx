@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { useUserNotifications, UserNotification } from '@/hooks/useNotifications';
 import { BellIcon, XIcon, CheckCircleIcon, SearchIcon, MailIcon } from '@/components/icons/Icons';
 
@@ -58,10 +58,11 @@ const NotificationItem: React.FC<{
   notification: UserNotification;
   onMarkRead: (id: string) => void;
 }> = ({ notification, onMarkRead }) => {
+  const { t } = useLanguage();
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'Just now';
+    if (mins < 1) return t('justNow');
     if (mins < 60) return `${mins}m ago`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h ago`;
@@ -89,7 +90,7 @@ const NotificationItem: React.FC<{
           <span className="text-[11px] text-gray-400">{timeAgo(notification.created_at)}</span>
           {notification.email_sent && (
             <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
-              <MailIcon size={10} /> Emailed
+              <MailIcon size={10} /> {t('emailed')}
             </span>
           )}
         </div>
@@ -105,6 +106,7 @@ const NotificationItem: React.FC<{
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ onOpenPreferences, onLoginRequired }) => {
   const { appUser } = useAuth();
+  const { t } = useLanguage();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useUserNotifications(appUser?.id || null);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -136,7 +138,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ onOpenPreferences, 
       <button
         onClick={handleBellClick}
         className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
-        title="Notifications"
+        title={t('notifications')}
       >
         <BellIcon size={20} />
         {unreadCount > 0 && (
@@ -151,14 +153,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ onOpenPreferences, 
         <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 animate-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="font-bold text-gray-900 text-sm">Notifications</h3>
+            <h3 className="font-bold text-gray-900 text-sm">{t('notifications')}</h3>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
                   className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
                 >
-                  Mark all read
+                  {t('markAllRead')}
                 </button>
               )}
               <button
@@ -194,9 +196,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ onOpenPreferences, 
                 <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <BellIcon size={24} className="text-gray-400" />
                 </div>
-                <h4 className="font-semibold text-gray-900 text-sm mb-1">No notifications yet</h4>
+                <h4 className="font-semibold text-gray-900 text-sm mb-1">{t('noNotificationsYet')}</h4>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                  You'll receive notifications about property matches, price drops, and agent responses here.
+                  {t('notificationsEmptyDesc')}
                 </p>
               </div>
             )}

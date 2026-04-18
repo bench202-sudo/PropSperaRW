@@ -3,6 +3,7 @@ import { Conversation, Message, Property, Agent, User } from '@/types';
 import { formatRelativeTime } from '@/data/mockData';
 import { supabase } from '@/lib/supabase';
 import { XIcon, SendIcon, ChevronLeftIcon, CheckCircleIcon } from '@/components/icons/Icons';
+import { useLanguage } from '@/contexts/AuthContext';
 
 interface MessagingPanelProps {
   conversations: Conversation[];
@@ -23,6 +24,7 @@ const MessagingPanel: React.FC<MessagingPanelProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const { t } = useLanguage();
   const [showConversationList, setShowConversationList] = useState(!initialConversation && !newMessageContext);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -145,7 +147,7 @@ const MessagingPanel: React.FC<MessagingPanelProps> = ({
       console.error('Failed to send message:', error);
       setMessages(prev => prev.filter(m => m.id !== optimisticId));
       setNewMessage(messageData.content);
-      alert('Failed to send message. Please try again.');
+      alert(t('failedToSendMsg'));
     } else if (data) {
       setMessages(prev =>
         prev.map(m => m.id === optimisticId ? { ...data, sender: currentUser } : m)
@@ -157,7 +159,7 @@ const MessagingPanel: React.FC<MessagingPanelProps> = ({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h2 className="text-lg font-bold">Messages</h2>
+        <h2 className="text-lg font-bold">{t('messages')}</h2>
         <button 
           onClick={onClose}
           className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
@@ -173,9 +175,9 @@ const MessagingPanel: React.FC<MessagingPanelProps> = ({
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <SendIcon size={24} className="text-gray-400" />
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">No messages yet</h3>
+            <h3 className="font-semibold text-gray-900 mb-1">{t('noMessagesYet')}</h3>
             <p className="text-sm text-gray-500">
-              Start a conversation by contacting an agent about a property
+              {t('startConversationHint')}
             </p>
           </div>
         ) : (

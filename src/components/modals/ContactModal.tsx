@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { MailIcon, PhoneIcon, MessageIcon, CheckCircleIcon, AlertCircleIcon, XIcon } from '@/components/icons/Icons';
+import { useLanguage } from '@/contexts/AuthContext';
 
 // ── Inline ContactModal ───────────────────────────────────────────────
  
@@ -18,6 +19,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { t } = useLanguage();
  
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -102,8 +104,8 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white">Contact Us</h2>
-              <p className="text-blue-200 text-sm mt-0.5">We'll get back to you within 24 hours</p>
+              <h2 className="text-xl font-bold text-white">{t('contactTitle')}</h2>
+              <p className="text-blue-200 text-sm mt-0.5">{t('contactSubtitle')}</p>
             </div>
             <button
               onClick={onClose}
@@ -120,9 +122,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircleIcon size={32} className="text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('contactSuccess')}</h3>
               <p className="text-gray-500 text-sm mb-6">
-                Thank you for reaching out. Our team will get back to you at <strong>{email}</strong> within 24 hours.
+                {t('contactSuccessMsg').replace('{email}', email)}
               </p>
               <button
                 onClick={onClose}
@@ -220,7 +222,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                 ) : (
                   <>
                     <MessageIcon size={18} />
-                    Send Message
+                    {t('contactSend')}
                   </>
                 )}
               </button>

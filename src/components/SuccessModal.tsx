@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircleIcon, ClockIcon } from '@/components/icons/Icons';
+import { useLanguage } from '@/contexts/AuthContext';
 
 interface SuccessModalProps {
   title: string;
@@ -18,6 +19,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
   actionLabel,
   onAction,
 }) => {
+  const { t } = useLanguage();
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-sm rounded-2xl p-6 text-center animate-slide-up">
@@ -44,7 +46,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
           onClick={onClose}
           className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
         >
-          Got it
+          {t('gotIt')}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Inquiry, InquiryStatus } from '@/types';
+import { useLanguage } from '@/contexts/AuthContext';
 import { 
   XIcon, 
   MessageIcon, 
@@ -29,6 +30,7 @@ interface InquiriesPanelProps {
 }
 
 const InquiriesPanel: React.FC<InquiriesPanelProps> = ({ agentId, onClose }) => {
+  const { t } = useLanguage();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<InquiryStatus | 'all'>('all');
@@ -142,7 +144,7 @@ const InquiriesPanel: React.FC<InquiriesPanelProps> = ({ agentId, onClose }) => 
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffHours < 1) return 'Just now';
+    if (diffHours < 1) return t('justNow');
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -150,10 +152,10 @@ const InquiriesPanel: React.FC<InquiriesPanelProps> = ({ agentId, onClose }) => 
 
   const getStatusBadge = (status: InquiryStatus) => {
     const styles: Record<InquiryStatus, { bg: string; text: string; label: string }> = {
-      new: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'New' },
-      pending: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Pending' },
-      responded: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Responded' },
-      closed: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Closed' }
+      new: { bg: 'bg-blue-100', text: 'text-blue-700', label: t('statusNew') },
+      pending: { bg: 'bg-amber-100', text: 'text-amber-700', label: t('pendingLabel') },
+      responded: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: t('statusResponded') },
+      closed: { bg: 'bg-gray-100', text: 'text-gray-700', label: t('statusClosed') }
     };
     return styles[status] || { bg: 'bg-gray-100', text: 'text-gray-700', label: status };
   };
@@ -162,14 +164,14 @@ const InquiriesPanel: React.FC<InquiriesPanelProps> = ({ agentId, onClose }) => 
     switch (status) {
       case 'sent':
       case 'delivered':
-        return { bg: 'bg-green-100', text: 'text-green-700', label: status === 'delivered' ? 'Delivered' : 'Sent', icon: 'check' };
+        return { bg: 'bg-green-100', text: 'text-green-700', label: status === 'delivered' ? t('emailDelivered') : t('emailStatusSent'), icon: 'check' };
       case 'failed':
       case 'bounced':
-        return { bg: 'bg-red-100', text: 'text-red-700', label: status === 'bounced' ? 'Bounced' : 'Failed', icon: 'x' };
+        return { bg: 'bg-red-100', text: 'text-red-700', label: status === 'bounced' ? t('emailBounced') : t('emailFailed'), icon: 'x' };
       case 'pending':
-        return { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Pending', icon: 'clock' };
+        return { bg: 'bg-amber-100', text: 'text-amber-700', label: t('pendingLabel'), icon: 'clock' };
       default:
-        return { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Unknown', icon: 'info' };
+        return { bg: 'bg-gray-100', text: 'text-gray-700', label: t('emailUnknown'), icon: 'info' };
     }
   };
 
@@ -180,8 +182,8 @@ const InquiriesPanel: React.FC<InquiriesPanelProps> = ({ agentId, onClose }) => 
         <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold">Property Inquiries</h1>
-              <p className="text-emerald-100 text-sm">Manage messages from potential buyers</p>
+              <h1 className="text-xl lg:text-2xl font-bold">{t('propertyInquiries')}</h1>
+              <p className="text-emerald-100 text-sm">{t('manageBuyerMessages')}</p>
             </div>
             <div className="flex items-center gap-2">
               <button

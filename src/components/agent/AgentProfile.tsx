@@ -5,7 +5,7 @@ import {
   PhoneIcon, MailIcon, CalendarIcon, MessageSquareIcon
 } from '@/components/icons/Icons';
 import { formatDate } from '@/data/mockData';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { useAgentRating } from '@/hooks/useAgentReviews';
 import PropertyCard from '@/components/property/PropertyCard';
 import AgentReviewsSection from '@/components/reviews/AgentReviewsSection';
@@ -30,7 +30,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
   onLoginRequired
 }) => {
   const { appUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<ProfileTab>('about');
+  const { t } = useLanguage();
   const agentProperties = properties.filter(p => p.agent_id === agent.id && p.status === 'approved');
   const agentRating = useAgentRating(agent.id);
 
@@ -80,12 +80,12 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
                 {agent.verification_status === 'approved' ? (
                   <span className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full text-xs">
                     <CheckCircleIcon size={12} />
-                    Verified Agent
+                    {t('verifiedAgent')}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 bg-amber-500/80 px-2 py-1 rounded-full text-xs">
                     <ClockIcon size={12} />
-                    Pending Verification
+                    {t('pendingVerification')}
                   </span>
                 )}
                 {displayRating > 0 && (
@@ -105,19 +105,19 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
         <div className="grid grid-cols-4 gap-3 p-4 border-b border-gray-100">
           <div className="text-center">
             <p className="text-2xl font-bold text-gray-900">{agent.total_listings}</p>
-            <p className="text-xs text-gray-500">Listings</p>
+            <p className="text-xs text-gray-500">{t('listingsCountLabel')}</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-gray-900">{agent.years_experience}</p>
-            <p className="text-xs text-gray-500">Years Exp.</p>
+            <p className="text-xs text-gray-500">{t('yearsExpLabel')}</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-gray-900">{displayRating || '-'}</p>
-            <p className="text-xs text-gray-500">Rating</p>
+            <p className="text-xs text-gray-500">{t('ratingLabel')}</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-gray-900">{reviewCount}</p>
-            <p className="text-xs text-gray-500">Reviews</p>
+            <p className="text-xs text-gray-500">{t('reviewsLabel')}</p>
           </div>
         </div>
 
@@ -132,7 +132,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
           >
             <div className="flex items-center justify-center gap-1.5">
               <BuildingIcon size={16} />
-              About
+              {t('aboutTab')}
             </div>
             {activeTab === 'about' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
@@ -148,7 +148,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
           >
             <div className="flex items-center justify-center gap-1.5">
               <MessageSquareIcon size={16} />
-              Reviews
+              {t('reviewsTab')}
               {reviewCount > 0 && (
                 <span className="bg-blue-100 text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {reviewCount}
@@ -166,14 +166,14 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
             <>
               {agent.bio && (
                 <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">About</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('aboutTab')}</h3>
                   <p className="text-gray-600 leading-relaxed">{agent.bio}</p>
                 </div>
               )}
               
               {agent.specializations.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-3">Specializations</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">{t('specializationsLabel')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {agent.specializations.map((spec, index) => (
                       <span 
@@ -188,7 +188,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
               )}
               
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Contact Information</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">{t('contactInfoLabel')}</h3>
                 <div className="space-y-3">
                   {agent.phone && (
                     <a 
@@ -224,7 +224,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
               {agentProperties.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">
-                    Active Listings ({agentProperties.length})
+                    {t('listingsCountLabel')} ({agentProperties.length})
                   </h3>
                   <div className="grid gap-4">
                     {agentProperties.slice(0, 3).map((property) => (

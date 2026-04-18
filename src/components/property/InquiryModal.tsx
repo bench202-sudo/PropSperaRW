@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Property } from '@/types';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { XIcon, MessageIcon, CheckCircleIcon } from '@/components/icons/Icons';
 import { formatPrice } from '@/data/mockData';
 
@@ -13,6 +13,7 @@ interface InquiryModalProps {
 
 const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSuccess }) => {
   const { appUser } = useAuth();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: appUser?.full_name || '',
     email: appUser?.email || '',
@@ -72,17 +73,17 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
 
     // Validate form
     if (!formData.name.trim()) {
-      setError('Please enter your name');
+      setError(t('pleaseEnterName'));
       setLoading(false);
       return;
     }
     if (!formData.email.trim()) {
-      setError('Please enter your email');
+      setError(t('pleaseEnterEmail'));
       setLoading(false);
       return;
     }
     if (!formData.message.trim()) {
-      setError('Please enter a message');
+      setError(t('pleaseEnterMessage'));
       setLoading(false);
       return;
     }
@@ -150,9 +151,9 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircleIcon size={32} className="text-green-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Inquiry Sent!</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{t('inquirySent')}</h2>
           <p className="text-gray-600 mb-4">
-            Your message has been sent to the agent. They will contact you soon.
+            {t('inquirySentMsg')}
           </p>
 
           {/* Email notification status indicator */}
@@ -160,13 +161,13 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
             {notificationStatus === 'pending' && (
               <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
                 <div className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-                <span>Notifying agent via email...</span>
+                <span>{t('notifyingAgentEmail')}</span>
               </div>
             )}
             {notificationStatus === 'sent' && (
               <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
                 <CheckCircleIcon size={14} className="text-green-600" />
-                <span>Agent notified by email</span>
+                <span>{t('agentNotifiedByEmail')}</span>
               </div>
             )}
             {notificationStatus === 'failed' && (
@@ -176,7 +177,7 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                <span>Inquiry saved. Agent will see it in their dashboard.</span>
+                <span>{t('inquirySavedDashboard')}</span>
               </div>
             )}
           </div>
@@ -195,8 +196,8 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
               <MessageIcon size={20} className="text-blue-600" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900">Contact Agent</h2>
-              <p className="text-sm text-gray-500">Send an inquiry about this property</p>
+              <h2 className="font-bold text-gray-900">{t('contactAgentTitle')}</h2>
+              <p className="text-sm text-gray-500">{t('sendInquiryAbout')}</p>
             </div>
           </div>
           <button
@@ -234,7 +235,7 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
               <polyline points="22,6 12,13 2,6" />
             </svg>
             <p className="text-sm text-emerald-700">
-              The agent will be notified by email immediately when you send this inquiry.
+              {t('agentEmailNoticeText')}
             </p>
           </div>
         </div>
@@ -249,35 +250,35 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Your Name <span className="text-red-500">*</span>
+              {t('yourName')} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="Enter your full name"
+              placeholder={t('fullNamePlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address <span className="text-red-500">*</span>
+              {t('email')} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="your@email.com"
+              placeholder={t('emailPlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number <span className="text-gray-400">(optional)</span>
+              {t('phone')} <span className="text-gray-400">{t('optionalLabel')}</span>
             </label>
             <input
               type="tel"
@@ -290,14 +291,14 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Message <span className="text-red-500">*</span>
+              {t('description').charAt(0).toUpperCase() + t('description').slice(1)} <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.message}
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
               rows={4}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-              placeholder="Write your message to the agent..."
+              placeholder={t('writeMessagePlaceholder')}
               required
             />
           </div>

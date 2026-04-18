@@ -43,7 +43,6 @@ async function generateLink(
   supabaseUrl: string,
 ): Promise<{ actionUrl: string | null; ok: boolean; supabaseError: string | null }> {
   try {
-    // Do NOT pass redirect_to here — that avoids allowlist validation at generation time.
     const res = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
       method: 'POST',
       headers: {

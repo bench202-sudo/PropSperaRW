@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import StarRating from '@/components/reviews/StarRating';
 import { SendIcon } from '@/components/icons/Icons';
 import { submitAgentReview } from '@/hooks/useAgentReviews';
+import { useLanguage } from '@/contexts/AuthContext';
 
 interface AgentReviewFormProps {
   agentId: string;
@@ -26,17 +27,18 @@ const AgentReviewForm: React.FC<AgentReviewFormProps> = ({
   const [reviewText, setReviewText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (rating === 0) {
-      setError('Please select a rating');
+      setError(t('pleaseSelectRating'));
       return;
     }
     if (reviewText.trim().length < 10) {
-      setError('Please write at least 10 characters in your review');
+      setError(t('reviewTooShort'));
       return;
     }
 
@@ -62,7 +64,7 @@ const AgentReviewForm: React.FC<AgentReviewFormProps> = ({
       setReviewText('');
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit review');
+      setError(err.message || t('reviewFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -70,13 +72,13 @@ const AgentReviewForm: React.FC<AgentReviewFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-5">
-      <h4 className="font-semibold text-gray-900 mb-1 text-lg">Rate {agentName}</h4>
-      <p className="text-sm text-gray-500 mb-4">Share your experience working with this agent</p>
+      <h4 className="font-semibold text-gray-900 mb-1 text-lg">{t('shareExperienceTitle').replace('{name}', agentName)}</h4>
+      <p className="text-sm text-gray-500 mb-4">{t('shareExperienceSubtitle')}</p>
 
       {/* Rating */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Your Rating
+          {t('yourRating')}
         </label>
         <StarRating
           rating={rating}
@@ -90,18 +92,18 @@ const AgentReviewForm: React.FC<AgentReviewFormProps> = ({
       {/* Review Text */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Your Review
+          {t('yourReview')}
         </label>
         <textarea
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
-          placeholder="How was your experience with this agent? Were they professional, responsive, and helpful?"
+          placeholder={t('reviewTextPlaceholder')}
           rows={4}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none transition-all"
           maxLength={2000}
         />
         <div className="flex justify-between mt-1">
-          <span className="text-xs text-gray-400">Min 10 characters</span>
+          <span className="text-xs text-gray-400">{t('minCharsHint')}</span>
           <span className={`text-xs ${reviewText.length > 1800 ? 'text-amber-500' : 'text-gray-400'}`}>
             {reviewText.length}/2000
           </span>
@@ -125,12 +127,12 @@ const AgentReviewForm: React.FC<AgentReviewFormProps> = ({
           {submitting ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Submitting...
+              {t('submittingBtn')}
             </>
           ) : (
             <>
               <SendIcon size={16} />
-              Submit Review
+              {t('submitReviewBtn')}
             </>
           )}
         </button>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserRole } from '@/types';
+import { useLanguage } from '@/contexts/AuthContext';
 import { HomeIcon, SearchIcon, MessageIcon, UserIcon, ShieldCheckIcon, BuildingIcon } from '@/components/icons/Icons';
 
 type NavItem = 'home' | 'search' | 'add' | 'messages' | 'profile' | 'admin';
@@ -17,13 +18,14 @@ const BottomNav: React.FC<BottomNavProps> = ({
   userRole,
   unreadMessages 
 }) => {
+  const { t } = useLanguage();
   const navItems: { key: NavItem; icon: React.ReactNode; label: string; roles?: UserRole[] }[] = [
-    { key: 'home', icon: <HomeIcon size={22} />, label: 'Home' },
-    { key: 'search', icon: <SearchIcon size={22} />, label: 'Search' },
-    { key: 'add', icon: <BuildingIcon size={22} />, label: 'Dashboard', roles: ['agent'] },
-    { key: 'messages', icon: <MessageIcon size={22} />, label: 'Messages' },
-    { key: 'admin', icon: <ShieldCheckIcon size={22} />, label: 'Admin', roles: ['admin'] },
-    { key: 'profile', icon: <UserIcon size={22} />, label: 'Profile' }
+    { key: 'home', icon: <HomeIcon size={22} />, label: t('home') },
+    { key: 'search', icon: <SearchIcon size={22} />, label: t('search') },
+    { key: 'add', icon: <BuildingIcon size={22} />, label: t('navDashboard'), roles: ['agent'] },
+    { key: 'messages', icon: <MessageIcon size={22} />, label: t('messages') },
+    { key: 'admin', icon: <ShieldCheckIcon size={22} />, label: t('navAdmin'), roles: ['admin'] },
+    { key: 'profile', icon: <UserIcon size={22} />, label: t('profile') }
   ];
 
   const visibleItems = navItems.filter(item => 

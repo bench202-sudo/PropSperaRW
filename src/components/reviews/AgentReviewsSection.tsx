@@ -4,6 +4,7 @@ import AgentReviewForm from '@/components/reviews/AgentReviewForm';
 import AgentReviewCard from '@/components/reviews/AgentReviewCard';
 import StarRating from '@/components/reviews/StarRating';
 import { StarIcon, ChevronDownIcon, PlusIcon } from '@/components/icons/Icons';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 
 interface AgentReviewsSectionProps {
   agentId: string;
@@ -23,6 +24,7 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
   onLoginRequired,
 }) => {
   const { reviews, loading, refetch } = useAgentReviews(agentId);
+  const { t } = useLanguage();
   const rating = useAgentRating(agentId);
   const reviewIds = useMemo(() => reviews.map(r => r.id), [reviews]);
   const votes = useAgentReviewVotes(reviewIds, currentUserId);
@@ -80,7 +82,7 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
   };
 
   const handleDelete = async (reviewId: string) => {
-    if (!confirm('Are you sure you want to delete your review?')) return;
+    if (!confirm(t('confirmDeleteReview'))) return;
     await deleteAgentReview(reviewId, agentId);
     await refetch();
   };
@@ -103,7 +105,7 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
       {/* Section Header */}
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-lg font-bold text-gray-900">
-          Reviews & Ratings
+          {t('reviewsAndRatings')}
         </h3>
         {!hasReviewed && !showForm && (
           <button
@@ -111,7 +113,7 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
           >
             <PlusIcon size={16} />
-            Write Review
+            {t('writeReviewBtn')}
           </button>
         )}
       </div>
@@ -125,7 +127,7 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
               <span className="text-4xl font-bold text-gray-900">{rating.avg_rating}</span>
               <StarRating rating={Math.round(rating.avg_rating)} size={18} />
               <span className="text-sm text-gray-500 mt-1">
-                {rating.review_count} {rating.review_count === 1 ? 'review' : 'reviews'}
+                {rating.review_count} {rating.review_count === 1 ? t('reviewSingular') : t('reviewPlural')}
               </span>
             </div>
 
@@ -164,13 +166,13 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
           {filterRating !== null && (
             <div className="mt-3 flex items-center gap-2">
               <span className="text-xs text-gray-500">
-                Showing {filterRating}-star reviews
+                {t('showingStarReviews').replace('{n}', String(filterRating))}
               </span>
               <button
                 onClick={() => setFilterRating(null)}
                 className="text-xs text-blue-600 font-medium hover:text-blue-700"
               >
-                Clear filter
+                {t('clearFilter')}
               </button>
             </div>
           )}
@@ -196,8 +198,8 @@ const AgentReviewsSection: React.FC<AgentReviewsSectionProps> = ({
       {reviews.length > 1 && (
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm text-gray-500">
-            {displayedReviews.length} {displayedReviews.length === 1 ? 'review' : 'reviews'}
-            {filterRating !== null ? ` (filtered)` : ''}
+            {displayedReviews.length} {displayedReviews.length === 1 ? t('reviewSingular') : t('reviewPlural')}
+            {filterRating !== null ? ` ${t('filteredLabel')}` : ''}
           </span>
           <div className="relative">
             <select

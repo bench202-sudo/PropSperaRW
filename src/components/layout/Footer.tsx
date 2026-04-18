@@ -35,7 +35,7 @@ const PropSperaLogo: React.FC = () => (
 );
  
 // Simple "Coming Soon" modal
-const ComingSoonModal: React.FC<{ title: string; onClose: () => void }> = ({ title, onClose }) => (
+const ComingSoonModal: React.FC<{ title: string; onClose: () => void; t: (key: string) => string }> = ({ title, onClose, t }) => (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
     <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl" onClick={e => e.stopPropagation()}>
       <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -45,9 +45,9 @@ const ComingSoonModal: React.FC<{ title: string; onClose: () => void }> = ({ tit
         </svg>
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-500 text-sm mb-6">This feature is coming soon. We're working hard to bring it to you. Stay tuned!</p>
+      <p className="text-gray-500 text-sm mb-6">{t('comingSoonMsg')}</p>
       <button onClick={onClose} className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors">
-        Got it
+        {t('gotIt')}
       </button>
     </div>
   </div>
@@ -86,7 +86,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
         className="hover:text-white transition-colors text-left flex items-center gap-1.5"
       >
         {label}
-        <span className="text-[10px] bg-blue-600/40 text-blue-300 px-1.5 py-0.5 rounded-full font-medium">Soon</span>
+        <span className="text-[10px] bg-blue-600/40 text-blue-300 px-1.5 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
       </button>
     </li>
   );
@@ -94,7 +94,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
   return (
     <footer className="bg-gray-900 text-white">
       {comingSoon && (
-        <ComingSoonModal title={comingSoon} onClose={() => setComingSoon(null)} />
+        <ComingSoonModal title={comingSoon} onClose={() => setComingSoon(null)} t={t as any} />
       )}
  
       <div className="max-w-7xl mx-auto px-4 py-12 sm:py-16">
@@ -105,7 +105,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
               <PropSperaLogo />
             </div>
             <p className="text-gray-400 text-sm mb-4">
-              Kigali's trusted real estate marketplace connecting buyers with verified agents.
+              {t('footerDesc')}
             </p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-gray-400">
@@ -125,26 +125,26 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
  
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <h4 className="font-semibold mb-4">{t('quickLinks')}</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              {navLink('search', 'Browse Properties')}
-              {navLink('agents', 'Find Agents')}
-              {navLink('search', 'For Sale')}
-              {navLink('search-rent', 'For Rent')}
-              {comingSoonLink('New Listings')}
+              {navLink('search', t('browseProperties'))}
+              {navLink('agents', t('findAgents'))}
+              {navLink('search', t('forSale'))}
+              {navLink('search-rent', t('forRent'))}
+              {comingSoonLink(t('newListings'))}
             </ul>
           </div>
- 
+
           {/* For Agents */}
           <div>
-            <h4 className="font-semibold mb-4">For Agents</h4>
+            <h4 className="font-semibold mb-4">{t('forAgents')}</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
                 <button
                   onClick={() => onBecomeAgent?.()}
                   className="hover:text-white transition-colors text-left"
                 >
-                  Become an Agent
+                  {t('becomeAgent')}
                 </button>
               </li>
               <li>
@@ -152,7 +152,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
                   onClick={() => onLogin?.()}
                   className="hover:text-white transition-colors text-left"
                 >
-                  Agent Login
+                  {t('agentLogin')}
                 </button>
               </li>
               <li>
@@ -160,17 +160,17 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
                   onClick={() => onBecomeAgent?.()}
                   className="hover:text-white transition-colors text-left"
                 >
-                  List a Property
+                  {t('listAProperty')}
                 </button>
               </li>
-              {comingSoonLink('Agent Resources')}
-              {comingSoonLink('Success Stories')}
+              {comingSoonLink(t('agentResources'))}
+              {comingSoonLink(t('successStories'))}
             </ul>
           </div>
  
           {/* Support */}
           <div>
-            <h4 className="font-semibold mb-4">Support</h4>
+            <h4 className="font-semibold mb-4">{t('support')}</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
                 <button onClick={() => onHelpCenter?.()} className="hover:text-white transition-colors text-left">
@@ -182,7 +182,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
                   onClick={() => onContact?.()}
                   className="hover:text-white transition-colors text-left"
                 >
-                  Contact Us
+                  {t('contactUs')}
                 </button>
               </li>
               <li>
@@ -212,7 +212,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate, onBecomeAgent, onLogin, onC
  
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-400">© 2026 PropSpera. All rights reserved.</p>
+          <p className="text-sm text-gray-400">{t('footerRights')}</p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-gray-400 hover:text-white transition-colors">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -1,10 +1,12 @@
 import React from 'react';
+import { useLanguage } from '@/contexts/AuthContext';
 
 // ── Inline PWA Install Prompt ──────────────────────────────────────────
 const InstallPrompt: React.FC = () => {
   const [installEvent, setInstallEvent] = React.useState<any>(null);
   const [show, setShow] = React.useState(false);
   const [isIOS, setIsIOS] = React.useState(false);
+  const { t } = useLanguage();
  
   React.useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) return;
@@ -49,13 +51,13 @@ const InstallPrompt: React.FC = () => {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900">Install PropSpera</p>
+            <p className="font-semibold text-gray-900">{t('installApp')}</p>
             {isIOS ? (
               <p className="text-sm text-gray-500 mt-0.5">
-                Tap <span className="font-medium">Share</span> then <span className="font-medium">"Add to Home Screen"</span>
+                {t('iosTapShare')} <span className="font-medium">&quot;{t('iosAddToHomeScreen')}&quot;</span>
               </p>
             ) : (
-              <p className="text-sm text-gray-500 mt-0.5">Add to your home screen for an app-like experience</p>
+              <p className="text-sm text-gray-500 mt-0.5">{t('addToHomeScreenDesc')}</p>
             )}
           </div>
           <button onClick={handleDismiss} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100">
@@ -66,8 +68,8 @@ const InstallPrompt: React.FC = () => {
         </div>
         {!isIOS && (
           <div className="flex gap-2 mt-3">
-            <button onClick={handleDismiss} className="flex-1 py-2 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50">Not now</button>
-            <button onClick={handleInstall} className="flex-1 py-2 rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Install</button>
+            <button onClick={handleDismiss} className="flex-1 py-2 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50">{t('notNow')}</button>
+            <button onClick={handleInstall} className="flex-1 py-2 rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">{t('installBtn')}</button>
           </div>
         )}
         {isIOS && (
@@ -76,7 +78,7 @@ const InstallPrompt: React.FC = () => {
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
               <polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
             </svg>
-            <p className="text-xs text-blue-700">Tap the share icon in Safari's bottom bar to install</p>
+            <p className="text-xs text-blue-700">{t('iosInstallHint')}</p>
           </div>
         )}
       </div>

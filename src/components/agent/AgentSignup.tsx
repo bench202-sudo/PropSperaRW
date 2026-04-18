@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { 
   XIcon, UploadIcon, CheckCircleIcon, ChevronDownIcon, 
   ImageIcon, UserIcon, BuildingIcon, AlertCircleIcon 
@@ -15,6 +15,7 @@ type Step = 'personal' | 'professional' | 'documents' | 'review';
  
 const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
   const { appUser, user, refreshUser } = useAuth();
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState<Step>('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -34,16 +35,15 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
  
   const steps: { key: Step; label: string; icon: React.ReactNode }[] = [
-    { key: 'personal', label: 'Personal', icon: <UserIcon size={18} /> },
-    { key: 'professional', label: 'Professional', icon: <BuildingIcon size={18} /> },
-    { key: 'documents', label: 'Documents', icon: <UploadIcon size={18} /> },
-    { key: 'review', label: 'Review', icon: <CheckCircleIcon size={18} /> }
+    { key: 'personal', label: t('stepPersonal'), icon: <UserIcon size={18} /> },
+    { key: 'professional', label: t('stepProfessional'), icon: <BuildingIcon size={18} /> },
+    { key: 'documents', label: t('stepDocuments'), icon: <UploadIcon size={18} /> },
+    { key: 'review', label: t('stepReview'), icon: <CheckCircleIcon size={18} /> }
   ];
- 
+
   const specializationOptions = [
-    'Luxury Homes', 'Villas', 'Apartments', 'Commercial', 
-    'Land', 'Rentals', 'Family Homes', 'Investment'
-  ];
+    t('specLuxuryHomes'), t('specVillas'), t('specApartments'), t('specCommercial'),
+    t('specLand'), t('specRentals'), t('specFamilyHomes'), t('specInvestment')
  
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,21 +65,21 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
     const newErrors: Record<string, string> = {};
  
     if (step === 'personal') {
-      if (!formData.full_name.trim()) newErrors.full_name = 'Full name is required';
-      if (!formData.email.trim()) newErrors.email = 'Email is required';
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
-      if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+      if (!formData.full_name.trim()) newErrors.full_name = t('fullNameRequired');
+      if (!formData.email.trim()) newErrors.email = t('emailRequired');
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = t('invalidEmailFormat');
+      if (!formData.phone.trim()) newErrors.phone = t('phoneRequired');
     }
  
     if (step === 'professional') {
-      if (!formData.company_name.trim()) newErrors.company_name = 'Company name is required';
+      if (!formData.company_name.trim()) newErrors.company_name = t('companyNameRequired');
       if (!formData.license_number.trim()) {
-        newErrors.license_number = 'Tax Identification Number is required';
+        newErrors.license_number = t('tinRequired');
       } else if (!/^\d{9}$/.test(formData.license_number.trim())) {
-        newErrors.license_number = 'Tax Identification Number must be exactly 9 digits';
+        newErrors.license_number = t('tinInvalidLength');
       }
-      if (!formData.years_experience) newErrors.years_experience = 'Years of experience is required';
-      if (formData.specializations.length === 0) newErrors.specializations = 'Select at least one specialization';
+      if (!formData.years_experience) newErrors.years_experience = t('yearsExpRequired');
+      if (formData.specializations.length === 0) newErrors.specializations = t('selectOneSpec');
     }
  
     if (step === 'documents') {
@@ -224,29 +224,29 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
               onChange={(e) => handleInputChange('avatar', e.target.files?.[0] || null)} />
           </label>
         </div>
-        <p className="text-sm text-gray-500 mt-2">Upload profile photo</p>
+        <p className="text-sm text-gray-500 mt-2">{t('uploadProfilePhoto')}</p>
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('fullName')} *</label>
         <input type="text" value={formData.full_name}
           onChange={(e) => handleInputChange('full_name', e.target.value)}
-          placeholder="Enter your full name"
+          placeholder={t('fullNamePlaceholder')}
           className={`w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.full_name ? 'ring-2 ring-red-500' : ''}`} />
         {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>}
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')} *</label>
         <input type="email" value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="your@email.com"
+          placeholder={t('emailPlaceholder')}
           className={`w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? 'ring-2 ring-red-500' : ''}`} />
         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('phone')} *</label>
         <input type="tel" value={formData.phone}
           onChange={(e) => handleInputChange('phone', e.target.value)}
           placeholder="+250 787 397 658"
@@ -259,16 +259,16 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
   const renderProfessionalStep = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Company/Agency Name *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('companyName')} *</label>
         <input type="text" value={formData.company_name}
           onChange={(e) => handleInputChange('company_name', e.target.value)}
-          placeholder="Your company name"
+          placeholder={t('companyNamePlaceholder')}
           className={`w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.company_name ? 'ring-2 ring-red-500' : ''}`} />
         {errors.company_name && <p className="text-red-500 text-xs mt-1">{errors.company_name}</p>}
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Tax Identification Number (TIN) *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('tinLabel')} *</label>
         <input
           type="text"
           value={formData.license_number}
@@ -292,17 +292,17 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('yearsExpLabel')} *</label>
         <div className="relative">
           <select value={formData.years_experience}
             onChange={(e) => handleInputChange('years_experience', e.target.value)}
             className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.years_experience ? 'ring-2 ring-red-500' : ''}`}>
-            <option value="">Select years</option>
-            <option value="1">Less than 1 year</option>
-            <option value="2">1-2 years</option>
-            <option value="3">3-5 years</option>
-            <option value="6">6-10 years</option>
-            <option value="10">10+ years</option>
+            <option value="">{t('selectYears')}</option>
+            <option value="1">{t('lessThan1Year')}</option>
+            <option value="2">{t('oneToTwoYears')}</option>
+            <option value="3">{t('threeToFiveYears')}</option>
+            <option value="6">{t('sixToTenYears')}</option>
+            <option value="10">{t('tenPlusYears')}</option>
           </select>
           <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
         </div>
@@ -310,16 +310,16 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('bio')}</label>
         <textarea value={formData.bio}
           onChange={(e) => handleInputChange('bio', e.target.value)}
-          placeholder="Tell potential clients about yourself..."
+          placeholder={t('bioPlaceholder')}
           rows={3}
           className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
       </div>
  
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Specializations *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('specializationsLabel')} *</label>
         <div className="flex flex-wrap gap-2">
           {specializationOptions.map((spec) => (
             <button key={spec} type="button" onClick={() => toggleSpecialization(spec)}
@@ -341,9 +341,9 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
         <div className="flex items-start gap-3">
           <AlertCircleIcon size={20} className="text-amber-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-amber-800">Document Uploads Coming Soon</h4>
+            <h4 className="font-medium text-amber-800">{t('docsComingSoonTitle')}</h4>
             <p className="text-sm text-amber-700 mt-1">
-              Document verification is temporarily unavailable. You can complete your application without uploading documents — we'll notify you when this feature is enabled.
+              {t('docsComingSoonMsg')}
             </p>
           </div>
         </div>
@@ -400,9 +400,9 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
         <div className="flex items-start gap-3">
           <AlertCircleIcon size={20} className="text-amber-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-amber-800">Review Your Information</h4>
+            <h4 className="font-medium text-amber-800">{t('reviewInfoTitle')}</h4>
             <p className="text-sm text-amber-700 mt-1">
-              Please verify all details before submitting. Your application will be reviewed within 24-48 hours.
+              {t('reviewInfoMsg')}
             </p>
           </div>
         </div>
@@ -413,7 +413,7 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
           <div className="flex items-start gap-3">
             <AlertCircleIcon size={20} className="text-red-600 mt-0.5" />
             <div>
-              <h4 className="font-medium text-red-800">Submission Error</h4>
+              <h4 className="font-medium text-red-800">{t('submissionError')}</h4>
               <p className="text-sm text-red-700 mt-1">{submitError}</p>
             </div>
           </div>
@@ -421,40 +421,40 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
       )}
  
       <div>
-        <h4 className="font-semibold text-gray-900 mb-3">Personal Information</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">{t('stepPersonal')}</h4>
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-500">Name</span>
+            <span className="text-gray-500">{t('fullName')}</span>
             <span className="font-medium">{formData.full_name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Email</span>
+            <span className="text-gray-500">{t('email')}</span>
             <span className="font-medium">{formData.email}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Phone</span>
+            <span className="text-gray-500">{t('phone')}</span>
             <span className="font-medium">{formData.phone}</span>
           </div>
         </div>
       </div>
  
       <div>
-        <h4 className="font-semibold text-gray-900 mb-3">Professional Information</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">{t('stepProfessional')}</h4>
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-500">Company</span>
+            <span className="text-gray-500">{t('companyName')}</span>
             <span className="font-medium">{formData.company_name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">TIN</span>
+            <span className="text-gray-500">{t('tinLabel')}</span>
             <span className="font-medium">{formData.license_number}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Experience</span>
-            <span className="font-medium">{formData.years_experience} years</span>
+            <span className="text-gray-500">{t('yearsExpLabel')}</span>
+            <span className="font-medium">{formData.years_experience} {t('yearsLabel')}</span>
           </div>
           <div className="pt-2">
-            <span className="text-gray-500 block mb-2">Specializations</span>
+            <span className="text-gray-500 block mb-2">{t('specializationsLabel')}</span>
             <div className="flex flex-wrap gap-1">
               {formData.specializations.map((spec) => (
                 <span key={spec} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-xs">{spec}</span>
@@ -465,15 +465,15 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
       </div>
  
       <div>
-        <h4 className="font-semibold text-gray-900 mb-3">Documents</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">{t('stepDocuments')}</h4>
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-gray-500">RDB Certificate</span>
-            <span className="text-xs text-amber-600 font-medium">Upload coming soon</span>
+            <span className="text-gray-500">{t('rdbCertLabel')}</span>
+            <span className="text-xs text-amber-600 font-medium">{t('comingSoon')}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-500">National ID / Passport</span>
-            <span className="text-xs text-amber-600 font-medium">Upload coming soon</span>
+            <span className="text-gray-500">{t('nationalIdLabel')}</span>
+            <span className="text-xs text-amber-600 font-medium">{t('comingSoon')}</span>
           </div>
         </div>
       </div>
@@ -486,7 +486,7 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
         {/* Header */}
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">Become a Verified Agent</h2>
+            <h2 className="text-lg font-bold">{t('becomeVerifiedAgent')}</h2>
             <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
               <XIcon size={20} />
             </button>
@@ -537,13 +537,13 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
           {currentStep !== 'personal' && (
             <button onClick={handleBack} disabled={isSubmitting}
               className="flex-1 py-3.5 rounded-xl font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50">
-              Back
+              {t('back')}
             </button>
           )}
           {currentStep !== 'review' ? (
             <button onClick={handleNext}
               className="flex-1 py-3.5 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-              Continue
+              {t('continueBtn')}
             </button>
           ) : (
             <button onClick={handleSubmit} disabled={isSubmitting}
@@ -556,7 +556,7 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
                   </svg>
                   Submitting...
                 </span>
-              ) : 'Submit Application'}
+              ) : t('submitApplication')}
             </button>
           )}
         </div>

@@ -230,7 +230,7 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ onClose }) => {
                 <p className="text-2xl font-bold">{stats.totalInquiries}</p>
                 {stats.newInquiries > 0 && (
                   <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
-                    {stats.newInquiries} new
+                    {stats.newInquiries} {t('new')}
                   </span>
                 )}
               </div>

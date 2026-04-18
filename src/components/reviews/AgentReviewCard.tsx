@@ -3,6 +3,7 @@ import { AgentReview } from '@/hooks/useAgentReviews';
 import StarRating from '@/components/reviews/StarRating';
 import { ThumbsUpIcon, ThumbsDownIcon, TrashIcon, FlagIcon } from '@/components/icons/Icons';
 import { formatRelativeTime } from '@/data/mockData';
+import { useLanguage } from '@/contexts/AuthContext';
 
 interface AgentReviewCardProps {
   review: AgentReview;
@@ -22,6 +23,7 @@ const AgentReviewCard: React.FC<AgentReviewCardProps> = ({
   votingDisabled = false,
 }) => {
   const [showFullText, setShowFullText] = useState(false);
+  const { t } = useLanguage();
   const isOwnReview = currentUserId === review.reviewer_id;
   const isLongText = review.review_text.length > 300;
   const displayText = isLongText && !showFullText
@@ -53,7 +55,7 @@ const AgentReviewCard: React.FC<AgentReviewCardProps> = ({
               </span>
               {isOwnReview && (
                 <span className="text-[10px] font-medium bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
-                  You
+                  {t('youLabel')}
                 </span>
               )}
             </div>
@@ -77,7 +79,7 @@ const AgentReviewCard: React.FC<AgentReviewCardProps> = ({
           onClick={() => setShowFullText(!showFullText)}
           className="text-blue-600 text-xs font-medium hover:text-blue-700 mb-3"
         >
-          {showFullText ? 'Show less' : 'Read more'}
+          {showFullText ? t('showLessBtn') : t('readMoreBtn')}
         </button>
       )}
 
@@ -93,10 +95,10 @@ const AgentReviewCard: React.FC<AgentReviewCardProps> = ({
                 ? 'text-green-600'
                 : 'text-gray-400 hover:text-green-600'
             } ${(!currentUserId || votingDisabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            title={!currentUserId ? 'Sign in to vote' : 'Helpful'}
+            title={!currentUserId ? t('signInToVote') : t('helpfulBtn')}
           >
             <ThumbsUpIcon size={14} filled={userVote === 'helpful'} />
-            <span>Helpful{review.helpful_count > 0 ? ` (${review.helpful_count})` : ''}</span>
+            <span>{t('helpfulBtn')}{review.helpful_count > 0 ? ` (${review.helpful_count})` : ''}</span>
           </button>
 
           {/* Not Helpful */}
@@ -108,7 +110,7 @@ const AgentReviewCard: React.FC<AgentReviewCardProps> = ({
                 ? 'text-red-500'
                 : 'text-gray-400 hover:text-red-500'
             } ${(!currentUserId || votingDisabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            title={!currentUserId ? 'Sign in to vote' : 'Not helpful'}
+            title={!currentUserId ? t('signInToVote') : t('notHelpfulBtn')}
           >
             <ThumbsDownIcon size={14} filled={userVote === 'not_helpful'} />
             <span>{review.not_helpful_count > 0 ? `(${review.not_helpful_count})` : ''}</span>
@@ -123,7 +125,7 @@ const AgentReviewCard: React.FC<AgentReviewCardProps> = ({
               className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors"
             >
               <TrashIcon size={13} />
-              <span>Delete</span>
+              <span>{t('deleteBtn')}</span>
             </button>
           )}
           {/* Report */}

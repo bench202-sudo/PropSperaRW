@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Property } from '@/types';
 import { formatPrice } from '@/data/mockData';
+import { useLanguage } from '@/contexts/AuthContext';
 import { 
   HeartIcon, MapPinIcon, BedIcon, BathIcon, AreaIcon, 
   XIcon, SearchIcon, ChevronDownIcon, TrashIcon, EyeIcon
@@ -28,6 +29,7 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   // Get favorited properties in order
   const savedProperties = useMemo(() => {
@@ -95,13 +97,13 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
           <div className="text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-5">
               <HeartIcon size={18} filled className="text-pink-200" />
-              <span className="text-pink-100 text-sm font-medium">Your Saved Collection</span>
+              <span className="text-pink-100 text-sm font-medium">{t('savedCollection')}</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3">
-              Saved Properties
+              {t('savedProperties')}
             </h1>
             <p className="text-lg text-pink-100 mb-8 max-w-xl mx-auto">
-              Keep track of properties you love. Review, compare, and take the next step when you're ready.
+              {t('savedPropertiesDesc')}
             </p>
 
             {/* Stats */}
@@ -109,17 +111,17 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
               <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-white">{favoriteIds.length}</p>
-                  <p className="text-xs text-pink-200">Saved</p>
+                  <p className="text-xs text-pink-200">{t('savedStat')}</p>
                 </div>
                 <div className="w-px h-10 bg-white/20" />
                 <div className="text-center">
                   <p className="text-3xl font-bold text-white">{forSale}</p>
-                  <p className="text-xs text-pink-200">For Sale</p>
+                  <p className="text-xs text-pink-200">{t('forSale')}</p>
                 </div>
                 <div className="w-px h-10 bg-white/20" />
                 <div className="text-center">
                   <p className="text-3xl font-bold text-white">{forRent}</p>
-                  <p className="text-xs text-pink-200">For Rent</p>
+                  <p className="text-xs text-pink-200">{t('forRent')}</p>
                 </div>
               </div>
             )}
@@ -133,7 +135,7 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading your saved properties...</p>
+              <p className="text-gray-500">{t('loadingSavedProperties')}</p>
             </div>
           </div>
         ) : favoriteIds.length === 0 ? (
@@ -142,16 +144,15 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
             <div className="w-24 h-24 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-6">
               <HeartIcon size={40} className="text-pink-300" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">No saved properties yet</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">{t('noSavedPropertiesYet')}</h2>
             <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              Start exploring properties and tap the heart icon to save the ones you love. 
-              They'll appear here for easy access.
+              {t('startExploringDesc')}
             </p>
             <button
               onClick={onBrowseListings}
               className="px-8 py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-semibold hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg shadow-pink-500/25"
             >
-              Browse Properties
+              {t('browsePropertiesBtn')}
             </button>
           </div>
         ) : (
@@ -163,7 +164,7 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
                 <SearchIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search saved properties..."
+                  placeholder={t('searchSavedPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -185,10 +186,10 @@ const SavedProperties: React.FC<SavedPropertiesProps> = ({
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="appearance-none w-full sm:w-48 px-4 py-3 pr-10 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent cursor-pointer"
                 >
-                  <option value="newest">Recently Saved</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="name">Name (A-Z)</option>
+                  <option value="newest">{t('recentlySaved')}</option>
+                  <option value="price-low">{t('priceAsc')}</option>
+                  <option value="price-high">{t('priceDesc')}</option>
+                  <option value="name">{t('nameAZ')}</option>
                 </select>
                 <ChevronDownIcon size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
