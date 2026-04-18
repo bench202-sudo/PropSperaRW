@@ -527,8 +527,8 @@ const AppLayout: React.FC = () => {
   const handleInquirySuccess = () => {
     setInquiryProperty(null);
     setSuccessModal({
-      title: 'Inquiry Sent!',
-      message: 'Your message has been sent to the agent. They will contact you soon.',
+      title: t('inquirySent'),
+      message: t('inquirySentMsg'),
       type: 'success'
     });
   };
@@ -550,10 +550,10 @@ const AppLayout: React.FC = () => {
     }
     if (appUser.role === 'agent' || appUser.role === 'admin') {
       setSuccessModal({
-        title: 'You\'re Already a Verified Agent',
-        message: 'Your account is already registered as an agent. To update your profile or details, please go to Account Settings.',
+        title: t('alreadyVerifiedAgent'),
+        message: t('alreadyAgentMsg'),
         type: 'success',
-        actionLabel: 'Go to Account Settings',
+        actionLabel: t('goToAccountSettings'),
         onAction: () => setShowProfilePage(true),
       });
       return;
@@ -564,8 +564,8 @@ const AppLayout: React.FC = () => {
   const handleAgentSignupSuccess = () => {
     setShowAgentSignup(false);
     setSuccessModal({
-      title: 'Application Submitted!',
-      message: 'Your agent application is under review. We\'ll notify you within 24-48 hours.',
+      title: t('applicationSubmitted'),
+      message: t('agentAppUnderReview'),
       type: 'pending'
     });
   };
@@ -573,8 +573,8 @@ const AppLayout: React.FC = () => {
   const handleAddPropertySuccess = () => {
     setShowAddProperty(false);
     setSuccessModal({
-      title: 'Listing Submitted!',
-      message: 'Your property listing is pending admin approval. It will be live once approved.',
+      title: t('listingSubmitted'),
+      message: t('listingPendingApproval'),
       type: 'pending'
     });
     refetchProperties();

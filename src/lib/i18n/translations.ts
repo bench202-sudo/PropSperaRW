@@ -413,6 +413,11 @@ const translations = {
     alreadyVerifiedAgent: "You're Already a Verified Agent",
     alreadyAgentMsg: 'Your account is already registered as an agent. To update your profile or details, please go to Account Settings.',
     goToAccountSettings: 'Go to Account Settings',
+    applicationSubmitted: 'Application Submitted!',
+    agentAppUnderReview: "Your agent application is under review. We'll notify you within 24-48 hours.",
+    listingSubmitted: 'Listing Submitted!',
+    listingPendingApproval: 'Your property listing is pending admin approval. It will be live once approved.',
+    roleUser: 'User', roleAgent: 'Agent', roleAdmin: 'Admin',
     // ─── InquiriesPanel ───────────────────────────────────────────────────────
     propertyInquiries: 'Property Inquiries',
     manageBuyerMessages: 'Manage messages from potential buyers',
@@ -939,6 +944,11 @@ const translations = {
     alreadyVerifiedAgent: 'Vous êtes déjà un agent vérifié',
     alreadyAgentMsg: "Votre compte est déjà enregistré en tant qu'agent. Pour mettre à jour votre profil, veuillez accéder aux Paramètres du compte.",
     goToAccountSettings: 'Aller aux paramètres du compte',
+    applicationSubmitted: 'Demande soumise !',
+    agentAppUnderReview: 'Votre demande d’agent est en cours d’examen. Nous vous informerons dans les 24 à 48 heures.',
+    listingSubmitted: 'Annonce soumise !',
+    listingPendingApproval: 'Votre annonce est en attente d’approbation par l’administrateur. Elle sera publiée une fois approuvée.',
+    roleUser: 'Utilisateur', roleAgent: 'Agent', roleAdmin: 'Administrateur',
     // ─── InquiriesPanel ───────────────────────────────────────────────────────
     propertyInquiries: 'Demandes de biens',
     manageBuyerMessages: 'Gérez les messages des acheteurs potentiels',

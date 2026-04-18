@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({
                 className="relative flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium text-sm"
                 title="Compare Properties">
                 <ColumnsIcon size={18} />
-                <span className="hidden sm:inline">Compare</span>
+                <span className="hidden sm:inline">{t('compare')}</span>
                 <span className="min-w-[20px] h-5 bg-indigo-600 text-white text-xs rounded-full flex items-center justify-center px-1 font-bold">{compareCount}</span>
               </button>
             )}
@@ -187,57 +187,57 @@ const Header: React.FC<HeaderProps> = ({
                         <div className="px-4 py-2 border-b border-gray-100">
                           <p className="font-medium text-gray-900">{currentUser.full_name}</p>
                           <p className="text-sm text-gray-500">{currentUser.email}</p>
-                          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
+                          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                             currentUser.role === 'admin' ? 'bg-purple-100 text-purple-700' :
                             currentUser.role === 'agent' ? 'bg-emerald-100 text-emerald-700' :
                             'bg-blue-100 text-blue-700'
-                          }`}>{currentUser.role}</span>
+                          }`}>{currentUser.role === 'admin' ? t('roleAdmin') : currentUser.role === 'agent' ? t('roleAgent') : t('roleUser')}</span>
                         </div>
  
                         <button onClick={() => { setShowProfileMenu(false); onFavoritesClick(); }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                           <HeartIcon size={16} filled={favoritesCount > 0} className={favoritesCount > 0 ? 'text-pink-500' : ''} />
-                          Saved Properties
+                          {t('savedProperties')}
                           {favoritesCount > 0 && <span className="ml-auto bg-pink-100 text-pink-600 text-xs px-2 py-0.5 rounded-full font-medium">{favoritesCount}</span>}
                         </button>
- 
+
                         {onCompareClick && (
                           <button onClick={() => { setShowProfileMenu(false); onCompareClick(); }}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                             <ColumnsIcon size={16} className={compareCount > 0 ? 'text-indigo-500' : ''} />
-                            Compare Properties
+                            {t('compareProperties')}
                             {compareCount > 0 && <span className="ml-auto bg-indigo-100 text-indigo-600 text-xs px-2 py-0.5 rounded-full font-medium">{compareCount}</span>}
                           </button>
                         )}
- 
+
                         <button onClick={() => { setShowProfileMenu(false); onOpenNotificationPreferences?.(); }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                           <BellIcon size={16} />
-                          Notification Settings
+                          {t('notificationSettings')}
                         </button>
- 
+
                         {currentUser.role === 'agent' && onAgentDashboardClick && (
                           <button onClick={() => { setShowProfileMenu(false); onAgentDashboardClick(); }}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                             <BuildingIcon size={16} />
-                            Agent Dashboard
+                            {t('agentDashboard')}
                           </button>
                         )}
- 
+
                         {currentUser.role === 'admin' && onAdminClick && (
                           <button onClick={() => { setShowProfileMenu(false); onAdminClick(); }}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                             <ShieldCheckIcon size={16} />
-                            Admin Dashboard
+                            {t('adminDashboard')}
                           </button>
                         )}
- 
+
                         <div className="border-t border-gray-100 mt-1 pt-1">
                           {onAccountSettingsClick && (
                             <button onClick={() => { setShowProfileMenu(false); onAccountSettingsClick(); }}
                               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                               <SettingsIcon size={16} />
-                              Account Settings
+                              {t('accountSettings')}
                             </button>
                           )}
                           <button onClick={() => { setShowProfileMenu(false); onProfileClick(); }}
@@ -247,7 +247,7 @@ const Header: React.FC<HeaderProps> = ({
                               <polyline points="16 17 21 12 16 7" />
                               <line x1="21" y1="12" x2="9" y2="12" />
                             </svg>
-                            Sign Out
+                            {t('signOut')}
                           </button>
                         </div>
                       </div>
