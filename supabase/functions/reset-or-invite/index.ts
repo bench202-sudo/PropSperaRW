@@ -112,7 +112,7 @@ async function sendEmail(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'PropSpera <no-reply@propspera.com>',
+      from: 'PropSpera <noreply@propspera.rw>'
       to: [to],
       subject,
       html,
@@ -217,7 +217,7 @@ Deno.serve(async (req) => {
     });
 
   try {
-    const { email, full_name } = await req.json();
+    const { email, full_name, redirect_to } = await req.json();
 
     if (!email || typeof email !== 'string') {
       return ok200({ success: false, error: 'Missing or invalid email' });
@@ -237,11 +237,11 @@ Deno.serve(async (req) => {
     }
 
     const origin =
+      (redirect_to as string | undefined)?.replace('/reset-password', '') ??
       req.headers.get('origin') ??
-      req.headers.get('referer')?.replace(/\/$/, '') ??
-      'https://prop-spera-rw.vercel.app';
+      'https://www.propspera.rw';
 
-    const redirectTo = `${origin}/reset-password`;
+    const redirectTo = redirect_to as string ?? `${origin}/reset-password`;
     const firstName = ((full_name as string) || email.split('@')[0]).split(' ')[0] || 'there';
     const year = new Date().getFullYear();
 

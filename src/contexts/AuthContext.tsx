@@ -335,7 +335,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // The edge function always returns HTTP 200 — errors are signalled via
       // data.success === false so we can read the actual message.
       const { data, error } = await supabase.functions.invoke('reset-or-invite', {
-        body: { email, full_name: full_name ?? '' },
+        body: { email, full_name: full_name ?? '', redirect_to: `${window.location.origin}/reset-password` },
       });
       if (error) {
         // Unexpected HTTP error (network, DNS, etc.) — surface raw message.
