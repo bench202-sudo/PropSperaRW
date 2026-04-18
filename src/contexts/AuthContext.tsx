@@ -224,21 +224,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
         options: {
           data: { full_name: fullName, role },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
-      // Supabase free tier has a 3 emails/hour rate limit. When exceeded it
-      // returns "Error sending confirmation email" but the user account IS
-      // created in auth.users. We handle verification ourselves via the
-      // Resend edge function, so treat this specific error as a soft failure
-      // and continue the signup flow. Any other auth errors (e.g. "Email
-      // already registered") are real and must be surfaced to the user.
-      const isEmailSendError =
-        error &&
-        /sending|confirmation|email/i.test(error.message);
+      // Only treat Supabase's specific rate-limit error as recoverable.
+      // Exact message match prevents accidentally bypassing real errors
+      // like "Email already registered" or "Invalid email format".
+      const isRateLimitError =
+        error?.message === 'Error sending confirmation email';
 
-      if (error && !isEmailSendError) return { error };
+      if (error && !isRateLimitError) return { error };
 
       // Set up user profile (skip if Supabase couldn't return the user id)
       if (data?.user) {
@@ -260,15 +256,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // Always send the branded verification / magic-link email via Resend.
-      // This is the primary confirmation mechanism — Supabase's built-in email
-      // is a fallback that can fail under rate limits.
-      try {
-        await supabase.functions.invoke('send-verification-email', {
+      // Only call Resend when Supabase's built-in email hit the rate limit.
+      // When Supabase succeeds it already sent the confirmation — no duplicate needed.
+      // supabase.functions.invoke never throws — it returns { data, error }.
+      if (isRateLimitError) {
+        const { error: fnError } = await supabase.functions.invoke('send-verification-email', {
           body: { email, full_name: fullName }
         });
-      } catch (emailErr) {
-        console.warn('Could not send custom verification email:', emailErr);
+        if (fnError) {
+          return { error: new Error('Unable to send confirmation email right now. Please try again in a few minutes.') };
+        }
       }
 
       return { error: null };
