@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { PropertyType, ListingType } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
 import { XIcon, ImageIcon, ChevronDownIcon, CheckCircleIcon, AlertCircleIcon } from '@/components/icons/Icons';
@@ -18,6 +18,7 @@ const CURRENCIES = [
  
 const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess }) => {
   const { appUser, user } = useAuth();
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agentId, setAgentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -226,7 +227,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
       <div className="bg-white w-full max-w-lg max-h-[95vh] overflow-hidden rounded-t-2xl sm:rounded-2xl animate-slide-up flex flex-col">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold">Add New Property</h2>
+          <h2 className="text-lg font-bold">{t('addNewProperty')}</h2>
           <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"><XIcon size={20} /></button>
         </div>
  
@@ -257,7 +258,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           )}
           {/* Images */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Property Images * (max 10)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('propertyImagesLabel')}</label>
             <div className="grid grid-cols-4 gap-2">
               {formData.images.map((file, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
@@ -268,7 +269,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
               {formData.images.length < 10 && (
                 <label className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${errors.images ? 'border-red-500' : 'border-gray-300'}`}>
                   <ImageIcon size={24} className="text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-500">Add</span>
+                  <span className="text-xs text-gray-500">{t('addImageBtn')}</span>
                   <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                 </label>
               )}
@@ -278,7 +279,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
  
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('titleFieldLabel')}</label>
             <input type="text" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)}
               placeholder="e.g., Modern 3-Bedroom Apartment in Kacyiru"
               className={`w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'ring-2 ring-red-500' : ''}`} />
@@ -288,34 +289,34 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           {/* Property Type & Listing Type */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Property Type *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('propertyType')} *</label>
               <div className="relative">
                 <select value={formData.property_type} onChange={(e) => handleInputChange('property_type', e.target.value)}
                   className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.property_type ? 'ring-2 ring-red-500' : ''}`}>
-                  <option value="">Select</option>
-                  <option value="house">House</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="villa">Villa</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="land">Land</option>
+                  <option value="">{t('selectOption')}</option>
+                  <option value="house">{t('house')}</option>
+                  <option value="apartment">{t('apartment')}</option>
+                  <option value="villa">{t('villa')}</option>
+                  <option value="commercial">{t('commercial')}</option>
+                  <option value="land">{t('land')}</option>
                 </select>
                 <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Listing Type *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('listingType')} *</label>
               {isLand ? (
                 <div className="w-full py-3 px-4 bg-gray-100 rounded-xl text-sm font-medium text-gray-500 flex items-center gap-2">
-                  <span>For Sale</span>
-                  <span className="text-xs text-gray-400">(Land only)</span>
+                  <span>{t('forSale')}</span>
+                  <span className="text-xs text-gray-400">({t('land')} only)</span>
                 </div>
               ) : (
                 <div className="relative">
                   <select value={formData.listing_type} onChange={(e) => handleInputChange('listing_type', e.target.value)}
                     className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.listing_type ? 'ring-2 ring-red-500' : ''}`}>
-                    <option value="">Select</option>
-                    <option value="sale">For Sale</option>
-                    <option value="rent">For Rent</option>
+                    <option value="">{t('selectOption')}</option>
+                    <option value="sale">{t('forSale')}</option>
+                    <option value="rent">{t('forRent')}</option>
                   </select>
                   <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
@@ -347,7 +348,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           {/* Price + Currency */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Price * {formData.listing_type === 'rent' && <span className="text-gray-400 font-normal">/ month</span>}
+              {t('priceLabel')} {formData.listing_type === 'rent' && <span className="text-gray-400 font-normal">/ {t('month')}</span>}
             </label>
             <div className="flex gap-2">
               <div className="relative flex-shrink-0">
@@ -371,7 +372,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
               />
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              {formData.currency === 'RWF' ? 'Rwandan Franc — shown as RWF on listing' : 'US Dollar — shown as $ on listing'}
+              {formData.currency === 'RWF' ? t('rwfCurrencyHint') : t('usdCurrencyHint')}
             </p>
             {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
           </div>
@@ -380,26 +381,26 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           <div className="grid grid-cols-2 gap-4">
             {!isLand && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('beds')}</label>
                 <input type="number" value={formData.bedrooms} onChange={(e) => handleInputChange('bedrooms', e.target.value)} placeholder="0"
                   className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             )}
             {!isLand && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('bathroomsLabel')}</label>
                 <input type="number" value={formData.bathrooms} onChange={(e) => handleInputChange('bathrooms', e.target.value)} placeholder="0"
                   className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Plot Size (m²)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('plotSizeLabel')}</label>
               <input type="number" value={formData.area_sqm} onChange={(e) => handleInputChange('area_sqm', e.target.value)} placeholder="0"
                 className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             {!isLand && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Built Area (m²)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('builtAreaLabel')}</label>
                 <input type="number" value={formData.built_area} onChange={(e) => handleInputChange('built_area', e.target.value)} placeholder="0"
                   className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
@@ -408,11 +409,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
  
           {/* Neighborhood */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Neighborhood *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('neighborhoodReqLabel')}</label>
             <div className="relative">
               <select value={formData.neighborhood} onChange={(e) => handleInputChange('neighborhood', e.target.value)}
                 className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.neighborhood ? 'ring-2 ring-red-500' : ''}`}>
-                <option value="">Select neighborhood</option>
+                <option value="">{t('selectOption')} {t('neighborhood').toLowerCase()}</option>
                 {neighborhoods.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
               <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -423,8 +424,8 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           {/* Address with geocoding */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Street Address
-              <span className="text-xs text-gray-400 font-normal ml-2">— auto-locates on map</span>
+              {t('streetAddressLabel')}
+              <span className="text-xs text-gray-400 font-normal ml-2">{t('autoLocatesOnMap')}</span>
             </label>
             <div className="relative">
               <input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)}
@@ -462,16 +463,16 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
  
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('description')}</label>
             <textarea value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe your property..." rows={3}
+              placeholder={t('descriptionPlaceholder')} rows={3}
               className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>
  
           {/* Amenities — hidden for Land */}
           {!isLand && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('amenities')}</label>
               <div className="flex flex-wrap gap-2">
                 {amenities.map((amenity) => (
                   <button key={amenity} type="button" onClick={() => toggleAmenity(amenity)}
@@ -487,11 +488,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
         <div className="p-4 border-t border-gray-100 bg-gray-50">
           <div className="flex items-center gap-2 mb-4 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">
             <CheckCircleIcon size={18} />
-            <span>Your listing will be reviewed by admin before going live.</span>
+            <span>{t('listingUnderReview')}</span>
           </div>
           <button onClick={handleSubmit} disabled={isSubmitting || !agentId}
             className="w-full py-3.5 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-            {isSubmitting ? 'Uploading & Submitting...' : 'Submit for Review'}
+            {isSubmitting ? t('uploadingSubmitting') : t('submitForReview')}
           </button>
         </div>
       </div>

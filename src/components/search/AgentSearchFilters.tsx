@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SearchIcon, FilterIcon, XIcon, StarIcon, ChevronDownIcon } from '@/components/icons/Icons';
+import { useLanguage } from '@/contexts/AuthContext';
 
 export interface AgentFilterState {
   searchQuery: string;
@@ -39,8 +40,22 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
   availableLocations,
 }) => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const { t } = useLanguage();
 
-  const updateFilter = (key: keyof AgentFilterState, value: any) => {
+  const experienceRanges = [
+    { label: t('anyExperience'), min: 0, max: 30 },
+    { label: t('oneToThreeYears'), min: 1, max: 3 },
+    { label: t('threeToFiveYears'), min: 3, max: 5 },
+    { label: t('fiveToTenYears'), min: 5, max: 10 },
+    { label: t('tenPlusYears'), min: 10, max: 30 },
+  ];
+
+  const sortOptions = [
+    { label: t('highestRated'), value: 'rating' as const },
+    { label: t('mostExperienced'), value: 'experience' as const },
+    { label: t('mostListingsSort'), value: 'listings' as const },
+    { label: t('nameAZ'), value: 'name' as const },
+  ];
     onFilterChange({ ...filters, [key]: value });
   };
 
@@ -56,28 +71,13 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
     filters.minRating > 0 ||
     filters.location !== 'all';
 
-  const experienceRanges = [
-    { label: 'Any Experience', min: 0, max: 30 },
-    { label: '1-3 years', min: 1, max: 3 },
-    { label: '3-5 years', min: 3, max: 5 },
-    { label: '5-10 years', min: 5, max: 10 },
-    { label: '10+ years', min: 10, max: 30 },
-  ];
-
   const ratingOptions = [
-    { label: 'Any Rating', value: 0 },
+    { label: t('anyRating'), value: 0 },
     { label: '3.0+', value: 3 },
     { label: '3.5+', value: 3.5 },
     { label: '4.0+', value: 4 },
     { label: '4.5+', value: 4.5 },
     { label: '4.8+', value: 4.8 },
-  ];
-
-  const sortOptions = [
-    { label: 'Highest Rated', value: 'rating' as const },
-    { label: 'Most Experienced', value: 'experience' as const },
-    { label: 'Most Listings', value: 'listings' as const },
-    { label: 'Name (A-Z)', value: 'name' as const },
   ];
 
   return (
@@ -89,7 +89,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
         </div>
         <input
           type="text"
-          placeholder="Search agents by name or company..."
+          placeholder={t('searchAgentsPlaceholder')}
           value={filters.searchQuery}
           onChange={(e) => updateFilter('searchQuery', e.target.value)}
           className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-base"
@@ -116,9 +116,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
                 : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
             }`}
           >
-            All Specializations
-          </button>
-          {availableSpecializations.slice(0, 5).map((spec) => (
+            {t('allSpecializations')}
             <button
               key={spec}
               onClick={() =>
@@ -170,7 +168,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
             {/* Specialization Dropdown (full list) */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Specialization
+                {t('specLabel')}
               </label>
               <div className="relative">
                 <select
@@ -178,7 +176,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
                   onChange={(e) => updateFilter('specialization', e.target.value)}
                   className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 cursor-pointer"
                 >
-                  <option value="all">All Specializations</option>
+                  <option value="all">{t('allSpecializations')}</option>
                   {availableSpecializations.map((spec) => (
                     <option key={spec} value={spec}>
                       {spec}
@@ -194,7 +192,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
             {/* Experience Range */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Years of Experience
+                {t('yearsOfExpLabel')}
               </label>
               <div className="relative">
                 <select
@@ -228,7 +226,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
             {/* Rating Filter */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Minimum Rating
+                {t('minimumRating')}
               </label>
               <div className="relative">
                 <select
@@ -251,7 +249,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
             {/* Location Filter */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Location
+                {t('location')}
               </label>
               <div className="relative">
                 <select
@@ -259,7 +257,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
                   onChange={(e) => updateFilter('location', e.target.value)}
                   className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 cursor-pointer"
                 >
-                  <option value="all">All Locations</option>
+                  <option value="all">{t('allLocations')}</option>
                   {availableLocations.map((loc) => (
                     <option key={loc} value={loc}>
                       {loc}
@@ -277,7 +275,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-5 pt-4 border-t border-gray-100 gap-4">
             {/* Rating Stars Visual Selector */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-600">Quick Rating:</span>
+              <span className="text-sm font-medium text-gray-600">{t('quickRating')}:</span>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -308,7 +306,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
 
             {/* Sort By */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600">Sort by:</span>
+              <span className="text-sm font-medium text-gray-600">{t('sortByLabel')}:</span>
               <div className="relative">
                 <select
                   value={filters.sortBy}
@@ -334,16 +332,16 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <p className="text-sm text-gray-600">
-            Showing{' '}
+            {t('showingLabel')}{' '}
             <span className="font-semibold text-gray-900">{resultCount}</span>{' '}
-            of{' '}
+            {t('ofLabel')}{' '}
             <span className="font-semibold text-gray-900">{totalCount}</span>{' '}
-            agents
+            {t('agents')}
           </p>
           {hasActiveFilters && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
               <FilterIcon size={12} />
-              Filtered
+              {t('filteredLabel')}
             </span>
           )}
         </div>
@@ -353,7 +351,7 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
             className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition-colors font-medium"
           >
             <XIcon size={14} />
-            Clear all filters
+            {t('clearFilters')}
           </button>
         )}
       </div>

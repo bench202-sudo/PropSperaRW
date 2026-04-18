@@ -247,7 +247,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose, onLogout }) 
                       className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50">
                       {avatarUploading ? t('uploading') : t('changePhoto')}
                     </button>
-                    <p className="text-xs text-gray-400 mt-1.5">JPG, PNG or GIF. Max 5MB.</p>
+                    <p className="text-xs text-gray-400 mt-1.5">{t('profilePhotoHint')}</p>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden"/>
                 </div>
@@ -267,7 +267,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ onClose, onLogout }) 
                     <MailIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
                     <input type="email" value={email} disabled className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"/>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">Email cannot be changed. Contact support for assistance.</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('emailCannotChange')}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('phone')}</label>

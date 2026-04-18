@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { Property, PropertyType, ListingType, PropertyStatus } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
 import { XIcon, ImageIcon, ChevronDownIcon, CheckCircleIcon, AlertCircleIcon, TrashIcon } from '@/components/icons/Icons';
@@ -179,7 +179,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
       <div className="bg-white w-full max-w-lg max-h-[95vh] overflow-hidden rounded-t-2xl sm:rounded-2xl animate-slide-up flex flex-col">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-bold">Edit Property</h2>
+          <h2 className="text-lg font-bold">{t('editPropertyTitle')}</h2>
           <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"><XIcon size={20} /></button>
         </div>
  
@@ -196,7 +196,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {/* Images */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Property Images * ({totalImages}/10)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('propertyImagesLabel')} ({totalImages}/10)</label>
             <div className="grid grid-cols-4 gap-2">
               {remainingExistingImages.map((imageUrl, index) => (
                 <div key={`existing-${index}`} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
@@ -214,7 +214,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
               {totalImages < 10 && (
                 <label className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${errors.images ? 'border-red-500' : 'border-gray-300'}`}>
                   <ImageIcon size={24} className="text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-500">Add</span>
+                  <span className="text-xs text-gray-500">{t('addImageBtn')}</span>
                   <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                 </label>
               )}
@@ -224,7 +224,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
  
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('titleFieldLabel')}</label>
             <input type="text" value={formData.title} onChange={(e) => handleInputChange('title', e.target.value)}
               className={`w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'ring-2 ring-red-500' : ''}`} />
             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
@@ -233,28 +233,28 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
           {/* Property Type & Listing Type */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Property Type *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('propertyType')} *</label>
               <div className="relative">
                 <select value={formData.property_type} onChange={(e) => handleInputChange('property_type', e.target.value)}
                   className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.property_type ? 'ring-2 ring-red-500' : ''}`}>
-                  <option value="">Select</option>
-                  <option value="house">House</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="villa">Villa</option>
-                  <option value="commercial">Commercial</option>
-                  <option value="land">Land</option>
+                  <option value="">{t('selectOption')}</option>
+                  <option value="house">{t('house')}</option>
+                  <option value="apartment">{t('apartment')}</option>
+                  <option value="villa">{t('villa')}</option>
+                  <option value="commercial">{t('commercial')}</option>
+                  <option value="land">{t('land')}</option>
                 </select>
                 <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Listing Type *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('listingType')} *</label>
               <div className="relative">
                 <select value={formData.listing_type} onChange={(e) => handleInputChange('listing_type', e.target.value)}
                   className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.listing_type ? 'ring-2 ring-red-500' : ''}`}>
-                  <option value="">Select</option>
-                  <option value="sale">For Sale</option>
-                  <option value="rent">For Rent</option>
+                  <option value="">{t('selectOption')}</option>
+                  <option value="sale">{t('forSale')}</option>
+                  <option value="rent">{t('forRent')}</option>
                 </select>
                 <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
@@ -308,7 +308,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
               />
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              {formData.currency === 'RWF' ? 'Rwandan Franc — shown as RWF on listing' : 'US Dollar — shown as $ on listing'}
+              {formData.currency === 'RWF' ? t('rwfCurrencyHint') : t('usdCurrencyHint')}
             </p>
             {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
           </div>
@@ -316,22 +316,22 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
           {/* Bedrooms, Bathrooms, Plot Size, Built Area */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('beds')}</label>
               <input type="number" value={formData.bedrooms} onChange={(e) => handleInputChange('bedrooms', e.target.value)} placeholder="0"
                 className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('bathroomsLabel')}</label>
               <input type="number" value={formData.bathrooms} onChange={(e) => handleInputChange('bathrooms', e.target.value)} placeholder="0"
                 className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Plot Size (m²)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('plotSizeLabel')}</label>
               <input type="number" value={formData.area_sqm} onChange={(e) => handleInputChange('area_sqm', e.target.value)} placeholder="0"
                 className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Built Area (m²)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('builtAreaLabel')}</label>
               <input type="number" value={formData.built_area} onChange={(e) => handleInputChange('built_area', e.target.value)} placeholder="0"
                 className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
@@ -339,11 +339,11 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
  
           {/* Neighborhood */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Neighborhood *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('neighborhoodReqLabel')}</label>
             <div className="relative">
-              <select value={formData.neighborhood} onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+              <select value={formData.neighborhood} onChange={(e) => handleChange('neighborhood', e.target.value)}
                 className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.neighborhood ? 'ring-2 ring-red-500' : ''}`}>
-                <option value="">Select neighborhood</option>
+                <option value="">{t('selectOption')} {t('neighborhood').toLowerCase()}</option>
                 {neighborhoods.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
               <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -393,15 +393,15 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
  
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Describe your property..." rows={3}
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('description')}</label>
+            <textarea value={formData.description} onChange={(e) => handleChange('description', e.target.value)}
+              placeholder={t('descriptionPlaceholder')} rows={3}
               className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>
  
           {/* Amenities */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('amenities')}</label>
             <div className="flex flex-wrap gap-2">
               {amenities.map((amenity) => (
                 <button key={amenity} type="button" onClick={() => toggleAmenity(amenity)}
@@ -416,7 +416,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
         <div className="p-4 border-t border-gray-100 bg-gray-50">
           <button onClick={handleSubmit} disabled={isSubmitting}
             className="w-full py-3.5 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-            {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+            {isSubmitting ? t('savingChanges') : t('saveChanges')}
           </button>
         </div>
       </div>
