@@ -188,7 +188,7 @@ const AppLayout: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [messageContext, setMessageContext] = useState<{ agent: Agent; property?: Property } | null>(null);
-  const [successModal, setSuccessModal] = useState<{ title: string; message: string; type: 'success' | 'pending' } | null>(null);
+  const [successModal, setSuccessModal] = useState<{ title: string; message: string; type: 'success' | 'pending'; actionLabel?: string; onAction?: () => void } | null>(null);
   const [inquiryProperty, setInquiryProperty] = useState<Property | null>(null);
   const [showNotificationPrefs, setShowNotificationPrefs] = useState(false);
   const [showSaveSearch, setShowSaveSearch] = useState(false);
@@ -546,6 +546,16 @@ const AppLayout: React.FC = () => {
   const handleBecomeAgent = () => {
     if (!appUser) {
       openAuthModal('signup', 'agent');
+      return;
+    }
+    if (appUser.role === 'agent' || appUser.role === 'admin') {
+      setSuccessModal({
+        title: 'You\'re Already a Verified Agent',
+        message: 'Your account is already registered as an agent. To update your profile or details, please go to Account Settings.',
+        type: 'success',
+        actionLabel: 'Go to Account Settings',
+        onAction: () => setShowProfilePage(true),
+      });
       return;
     }
     setShowAgentSignup(true);
@@ -1249,6 +1259,8 @@ const AppLayout: React.FC = () => {
           title={successModal.title}
           message={successModal.message}
           type={successModal.type}
+          actionLabel={successModal.actionLabel}
+          onAction={successModal.onAction}
           onClose={() => setSuccessModal(null)}
         />
       )}

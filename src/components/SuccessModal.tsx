@@ -6,13 +6,17 @@ interface SuccessModalProps {
   message: string;
   onClose: () => void;
   type?: 'success' | 'pending';
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 const SuccessModal: React.FC<SuccessModalProps> = ({ 
   title, 
   message, 
   onClose,
-  type = 'success' 
+  type = 'success',
+  actionLabel,
+  onAction,
 }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -28,6 +32,14 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
         </div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
         <p className="text-gray-500 mb-6">{message}</p>
+        {actionLabel && onAction && (
+          <button
+            onClick={() => { onAction(); onClose(); }}
+            className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors mb-3"
+          >
+            {actionLabel}
+          </button>
+        )}
         <button
           onClick={onClose}
           className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
