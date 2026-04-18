@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabasePublic } from '@/lib/supabase';
 import { Property, Agent, SearchFilters } from '@/types';
 import { mockProperties, mockAgents } from '@/data/mockData';
- 
+
 interface DBProperty {
   id: string;
   agent_id: string | null;
@@ -79,14 +79,14 @@ export const useProperties = (userRole?: string | null) => {
     try {
       // Fetch properties, agents, and users ALL IN PARALLEL
       const [propsResult, agentsResult] = await Promise.all([
-        supabase
+        supabasePublic
           .from('properties')
           .select('*')
           .eq('hidden', false)
           .eq('status', 'approved')
           .order('created_at', { ascending: false })
           .abortSignal(controller.signal),
-        supabase
+        supabasePublic
           .from('agents')
           .select('*')
           .abortSignal(controller.signal),
@@ -115,7 +115,7 @@ export const useProperties = (userRole?: string | null) => {
       // Fetch users for agents
       let usersMap: Record<string, any> = {};
       if (userIds.length > 0) {
-        const { data: usersData } = await supabase
+        const { data: usersData } = await supabasePublic
           .from('users')
           .select('id, full_name, email, phone, avatar_url, created_at')
           .in('id', userIds);
@@ -198,7 +198,7 @@ export const useAgents = () => {
 
     try {
       // Fetch agents and users IN PARALLEL
-      const { data: agentsData, error: agentsError } = await supabase
+      const { data: agentsData, error: agentsError } = await supabasePublic
         .from('agents')
         .select('*')
         .eq('verification_status', 'approved')
@@ -224,7 +224,7 @@ export const useAgents = () => {
       let usersMap: Record<string, any> = {};
  
       if (userIds.length > 0) {
-        const { data: usersData } = await supabase
+        const { data: usersData } = await supabasePublic
           .from('users')
           .select('id, full_name, email, phone, avatar_url, created_at')
           .in('id', userIds);

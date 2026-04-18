@@ -23,6 +23,7 @@ const fetchWithTimeout = (url: RequestInfo | URL, init?: RequestInit): Promise<R
   return fetch(url, { ...init, signal: combinedSignal }).finally(() => clearTimeout(id));
 };
 
+// Full auth client — used for authentication flows and user-specific queries.
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
@@ -37,4 +38,19 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
-export { supabase };
+// Auth-free client — used for public data queries (properties, agents).
+// It never has a session to refresh, so REST calls are never blocked by
+// auth initialization. This fixes the "loading forever" issue when a
+// stale auth session exists in localStorage on the production domain.
+const supabasePublic = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+  global: {
+    fetch: fetchWithTimeout,
+  },
+});
+
+export { supabase, supabasePublic };
