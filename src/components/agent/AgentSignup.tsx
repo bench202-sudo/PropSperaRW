@@ -83,8 +83,9 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
     }
  
     if (step === 'documents') {
-      if (!formData.license_doc) newErrors.license_doc = 'License document is required';
-      if (!formData.id_doc) newErrors.id_doc = 'ID document is required';
+      // TODO: Re-enable document validation when uploads are re-activated
+      // if (!formData.license_doc) newErrors.license_doc = 'License document is required';
+      // if (!formData.id_doc) newErrors.id_doc = 'ID document is required';
     }
  
     setErrors(newErrors);
@@ -336,56 +337,59 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
  
   const renderDocumentsStep = () => (
     <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
         <div className="flex items-start gap-3">
-          <AlertCircleIcon size={20} className="text-blue-600 mt-0.5" />
+          <AlertCircleIcon size={20} className="text-amber-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-blue-800">Document Requirements</h4>
-            <p className="text-sm text-blue-700 mt-1">
-              Please upload clear copies of your documents. Accepted formats: PDF, JPG, PNG (max 5MB each).
+            <h4 className="font-medium text-amber-800">Document Uploads Coming Soon</h4>
+            <p className="text-sm text-amber-700 mt-1">
+              Document verification is temporarily unavailable. You can complete your application without uploading documents — we'll notify you when this feature is enabled.
             </p>
           </div>
         </div>
       </div>
- 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">RDB Certificate *</label>
-        <label className={`flex flex-col items-center justify-center w-full h-32 bg-gray-50 border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-100 transition-colors ${errors.license_doc ? 'border-red-500' : 'border-gray-300'}`}>
-          {formData.license_doc ? (
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircleIcon size={24} />
-              <span className="font-medium">{formData.license_doc.name}</span>
-            </div>
-          ) : (
-            <>
-              <UploadIcon size={32} className="text-gray-400 mb-2" />
-              <span className="text-sm text-gray-500">Click to upload license</span>
-            </>
-          )}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
-            onChange={(e) => handleInputChange('license_doc', e.target.files?.[0] || null)} />
-        </label>
-        {errors.license_doc && <p className="text-red-500 text-xs mt-1">{errors.license_doc}</p>}
-      </div>
- 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">National ID / Passport *</label>
-        <label className={`flex flex-col items-center justify-center w-full h-32 bg-gray-50 border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-100 transition-colors ${errors.id_doc ? 'border-red-500' : 'border-gray-300'}`}>
-          {formData.id_doc ? (
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircleIcon size={24} />
-              <span className="font-medium">{formData.id_doc.name}</span>
-            </div>
-          ) : (
-            <>
-              <UploadIcon size={32} className="text-gray-400 mb-2" />
-              <span className="text-sm text-gray-500">Click to upload ID</span>
-            </>
-          )}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
-            onChange={(e) => handleInputChange('id_doc', e.target.files?.[0] || null)} />
-        </label>
-        {errors.id_doc && <p className="text-red-500 text-xs mt-1">{errors.id_doc}</p>}
+
+      {/* TODO: Re-enable when document uploads are activated */}
+      <div className="opacity-40 pointer-events-none select-none">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">RDB Certificate</label>
+          <label className="flex flex-col items-center justify-center w-full h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+            {formData.license_doc ? (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircleIcon size={24} />
+                <span className="font-medium">{formData.license_doc.name}</span>
+              </div>
+            ) : (
+              <>
+                <UploadIcon size={32} className="text-gray-400 mb-2" />
+                <span className="text-sm text-gray-500">Click to upload license</span>
+              </>
+            )}
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
+              onChange={(e) => handleInputChange('license_doc', e.target.files?.[0] || null)} />
+          </label>
+          {errors.license_doc && <p className="text-red-500 text-xs mt-1">{errors.license_doc}</p>}
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">National ID / Passport</label>
+          <label className="flex flex-col items-center justify-center w-full h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+            {formData.id_doc ? (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircleIcon size={24} />
+                <span className="font-medium">{formData.id_doc.name}</span>
+              </div>
+            ) : (
+              <>
+                <UploadIcon size={32} className="text-gray-400 mb-2" />
+                <span className="text-sm text-gray-500">Click to upload ID</span>
+              </>
+            )}
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
+              onChange={(e) => handleInputChange('id_doc', e.target.files?.[0] || null)} />
+          </label>
+          {errors.id_doc && <p className="text-red-500 text-xs mt-1">{errors.id_doc}</p>}
+        </div>
       </div>
     </div>
   );
@@ -465,11 +469,11 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-gray-500">RDB Certificate</span>
-            <span className="flex items-center gap-1 text-green-600"><CheckCircleIcon size={16} />Uploaded</span>
+            <span className="text-xs text-amber-600 font-medium">Upload coming soon</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-500">ID Document</span>
-            <span className="flex items-center gap-1 text-green-600"><CheckCircleIcon size={16} />Uploaded</span>
+            <span className="text-gray-500">National ID / Passport</span>
+            <span className="text-xs text-amber-600 font-medium">Upload coming soon</span>
           </div>
         </div>
       </div>
