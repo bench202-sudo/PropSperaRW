@@ -431,6 +431,7 @@ const AppLayout: React.FC = () => {
       case 'agents':
         setCurrentView('agents');
         setActiveNav('home');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       case 'favorites':
         handleFavoritesClick();
@@ -454,6 +455,7 @@ const AppLayout: React.FC = () => {
   const handleViewAllAgents = () => {
     setAgentFilters(defaultAgentFilters);
     setCurrentView('agents');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
  
   const handleSelectNeighborhood = (neighborhood: string) => {
@@ -1055,18 +1057,17 @@ const AppLayout: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                   <div className="text-center sm:text-left">
                     <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                      Are You a Real Estate Professional?
+                      {t('realEstatePro')}
                     </h3>
                     <p className="text-emerald-100 max-w-xl">
-                      Join PropSpera's network of verified agents. Get access to qualified leads, 
-                      powerful listing tools, and a growing community of professionals.
+                      {t('joinNetworkDesc')}
                     </p>
                   </div>
                   <button
                     onClick={handleBecomeAgent}
                     className="px-8 py-3.5 bg-white text-emerald-700 rounded-xl font-bold hover:bg-emerald-50 transition-colors shadow-lg whitespace-nowrap"
                   >
-                    Apply Now
+                    {t('applyNow')}
                   </button>
                 </div>
               </div>
