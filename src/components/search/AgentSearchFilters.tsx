@@ -56,6 +56,8 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
     { label: t('mostListingsSort'), value: 'listings' as const },
     { label: t('nameAZ'), value: 'name' as const },
   ];
+
+  const updateFilter = <K extends keyof AgentFilterState>(key: K, value: AgentFilterState[K]) => {
     onFilterChange({ ...filters, [key]: value });
   };
 
@@ -117,6 +119,8 @@ const AgentSearchFilters: React.FC<AgentSearchFiltersProps> = ({
             }`}
           >
             {t('allSpecializations')}
+          </button>
+          {availableSpecializations.slice(0, 5).map((spec) => (
             <button
               key={spec}
               onClick={() =>

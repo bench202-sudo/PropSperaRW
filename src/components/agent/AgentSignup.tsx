@@ -44,7 +44,8 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
   const specializationOptions = [
     t('specLuxuryHomes'), t('specVillas'), t('specApartments'), t('specCommercial'),
     t('specLand'), t('specRentals'), t('specFamilyHomes'), t('specInvestment')
- 
+  ];
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
