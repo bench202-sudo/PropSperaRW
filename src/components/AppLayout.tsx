@@ -943,14 +943,13 @@ const AppLayout: React.FC = () => {
                 <div className="text-center max-w-3xl mx-auto">
                   <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
                     <ShieldCheckIcon size={18} className="text-blue-200" />
-                    <span className="text-blue-100 text-sm font-medium">All Agents Verified & Licensed</span>
+                    <span className="text-blue-100 text-sm font-medium">{t('allAgentsVerified')}</span>
                   </div>
                   <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-                    Find Your Perfect Agent
+                    {t('findAgentsTitle')}
                   </h1>
                   <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-                    Browse our network of verified real estate professionals in Kigali. 
-                    Filter by specialization, experience, and rating to find the right match.
+                    {t('agentsSubtitle')}
                   </p>
  
                   {/* Stats Row */}
@@ -961,7 +960,7 @@ const AppLayout: React.FC = () => {
                       </div>
                       <div className="text-left">
                         <p className="text-2xl font-bold text-white">{verifiedAgents.length}</p>
-                        <p className="text-xs text-blue-200">Verified Agents</p>
+                        <p className="text-xs text-blue-200">{t('verifiedAgentsLabel')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -974,7 +973,7 @@ const AppLayout: React.FC = () => {
                             ? (verifiedAgents.reduce((sum, a) => sum + a.rating, 0) / verifiedAgents.length).toFixed(1) 
                             : '0'}
                         </p>
-                        <p className="text-xs text-blue-200">Avg Rating</p>
+                        <p className="text-xs text-blue-200">{t('avgRating')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -985,7 +984,7 @@ const AppLayout: React.FC = () => {
                         <p className="text-2xl font-bold text-white">
                           {verifiedAgents.reduce((sum, a) => sum + a.total_listings, 0)}
                         </p>
-                        <p className="text-xs text-blue-200">Total Listings</p>
+                        <p className="text-xs text-blue-200">{t('totalListings')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -994,7 +993,7 @@ const AppLayout: React.FC = () => {
                       </div>
                       <div className="text-left">
                         <p className="text-2xl font-bold text-white">{neighborhoods.length}+</p>
-                        <p className="text-xs text-blue-200">Areas Covered</p>
+                        <p className="text-xs text-blue-200">{t('areasCovered')}</p>
                       </div>
                     </div>
                   </div>
