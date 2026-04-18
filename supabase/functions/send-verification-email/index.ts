@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
  
     // ── Determine email type: welcome | reset ─────────────────────────────
     const emailType   = type === 'reset' ? 'reset' : 'welcome';
-    const origin      = req.headers.get('origin') || 'https://prop-spera-rw.vercel.app';
+    const origin      = req.headers.get('origin') || 'https://www.propspera.rw';
     const firstName   = full_name?.split(' ')[0] || 'there';
     const currentYear = new Date().getFullYear();
  
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         'Content-Type':  'application/json',
       },
       body: JSON.stringify({
-        from:    'PropSpera <notifications@propspera.com>',
+        from:    'PropSpera <noreply@propspera.rw>',
         to:      [email],
         subject,
         html,
