@@ -71,7 +71,6 @@ export const useProperties = (userRole?: string | null) => {
   const fetchProperties = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.log('[useProperties] Fetching properties...');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -92,8 +91,6 @@ export const useProperties = (userRole?: string | null) => {
           .abortSignal(controller.signal),
       ]);
       clearTimeout(timeoutId);
-
-      console.log('[useProperties] properties rows:', propsResult.data?.length ?? 0, 'error:', propsResult.error?.message);
 
       if (propsResult.error) {
         console.error('Error fetching properties:', propsResult.error);
@@ -160,18 +157,16 @@ export const useProperties = (userRole?: string | null) => {
       );
  
       const transformedProperties = propsData.map((p: any) => transformProperty(p, agentsMap));
-      console.log('[useProperties] transformed:', transformedProperties.length);
       setProperties(transformedProperties);
     } catch (err) {
       clearTimeout(timeoutId);
       console.error('Error fetching properties:', err);
       setProperties([]);
     } finally {
-      console.log('[useProperties] done, loading=false');
       setLoading(false);
     }
   }, []);
- 
+
   useEffect(() => {
     fetchProperties();
   }, [fetchProperties]);
@@ -191,7 +186,6 @@ export const useAgents = () => {
   const fetchAgents = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.log('[useAgents] Fetching agents...');
 
     const agentController = new AbortController();
     const agentTimeoutId = setTimeout(() => agentController.abort(), 10000);
@@ -206,8 +200,6 @@ export const useAgents = () => {
         .order('rating', { ascending: false })
         .abortSignal(agentController.signal);
       clearTimeout(agentTimeoutId);
-
-      console.log('[useAgents] rows:', agentsData?.length ?? 0, 'error:', agentsError?.message);
 
       if (agentsError) {
         console.error('Error fetching agents:', agentsError);
