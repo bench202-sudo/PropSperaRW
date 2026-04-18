@@ -112,7 +112,7 @@ async function sendEmail(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'PropSpera <noreply@propspera.rw>'
+      from: 'PropSpera <noreply@propspera.rw>',
       to: [to],
       subject,
       html,
