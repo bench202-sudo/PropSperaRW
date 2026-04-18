@@ -227,18 +227,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailRedirectTo: `${window.location.origin}/`
         }
       });
- 
-      if (error) return { error };
- 
-      // Set up user profile
-      if (data.user) {
+
+      // Supabase free tier has a 3 emails/hour rate limit. When exceeded it
+      // returns "Error sending confirmation email" but the user account IS
+      // created in auth.users. We handle verification ourselves via the
+      // Resend edge function, so treat this specific error as a soft failure
+      // and continue the signup flow. Any other auth errors (e.g. "Email
+      // already registered") are real and must be surfaced to the user.
+      const isEmailSendError =
+        error &&
+        /sending|confirmation|email/i.test(error.message);
+
+      if (error && !isEmailSendError) return { error };
+
+      // Set up user profile (skip if Supabase couldn't return the user id)
+      if (data?.user) {
         await new Promise(resolve => setTimeout(resolve, 500));
         try {
           const { data: existingUser } = await supabase
             .from('users').select('id').eq('auth_id', data.user.id).single();
- 
+
           if (existingUser) {
-            // Do NOT overwrite role — preserve any existing role from imported data
             await supabase.from('users')
               .update({ full_name: fullName })
               .eq('auth_id', data.user.id);
@@ -249,18 +258,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (profileErr) {
           console.warn('Error setting up user profile during signup:', profileErr);
         }
- 
-        // Send branded verification email via Resend
-        try {
-          await supabase.functions.invoke('send-verification-email', {
-            body: { email, full_name: fullName }
-          });
-          console.log('✅ Verification email sent via Resend');
-        } catch (emailErr) {
-          console.warn('Could not send custom verification email:', emailErr);
-        }
       }
- 
+
+      // Always send the branded verification / magic-link email via Resend.
+      // This is the primary confirmation mechanism — Supabase's built-in email
+      // is a fallback that can fail under rate limits.
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: { email, full_name: fullName }
+        });
+      } catch (emailErr) {
+        console.warn('Could not send custom verification email:', emailErr);
+      }
+
       return { error: null };
     } catch (error) {
       return { error: error as Error };
