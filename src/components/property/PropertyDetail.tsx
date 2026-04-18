@@ -197,10 +197,10 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
                 <img src={property.agent.avatar_url} alt={property.agent.full_name} className="w-14 h-14 rounded-full object-cover" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">{property.agent.user?.full_name}</span>
+                    <span className="font-semibold text-gray-900">{property.agent.company_name || property.agent.user?.full_name}</span>
                     {property.agent.verification_status === 'approved' && <CheckCircleIcon size={16} className="text-blue-600" />}
                   </div>
-                  <p className="text-sm text-gray-500">{property.agent.company_name}</p>
+                  <p className="text-sm text-gray-500">{property.agent.user?.full_name}</p>
                   {property.agent.rating > 0 && (
                     <div className="flex items-center gap-1 mt-1">
                       <StarIcon size={14} filled className="text-amber-400" />

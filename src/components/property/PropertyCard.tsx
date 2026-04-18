@@ -90,7 +90,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-full pl-1 pr-3 py-1">
             <img src={property.agent.user?.avatar_url} alt={property.agent.user?.full_name} className="w-6 h-6 rounded-full object-cover" />
             <span className="text-xs font-medium text-gray-800 flex items-center gap-1">
-              {property.agent.user?.full_name?.split(' ')[0]}
+              {(property.agent as any).company_name || property.agent.user?.full_name?.split(' ')[0]}
               <CheckCircleIcon size={12} className="text-blue-600" />
             </span>
           </div>
