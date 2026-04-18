@@ -119,7 +119,12 @@ const AppLayout: React.FC = () => {
   
   // Navigation state
   const [activeNav, setActiveNav] = useState<NavItem>('home');
-  const [currentView, setCurrentView] = useState<View>('home');
+  const [currentView, setCurrentView] = useState<View>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    if (view === 'agents' || view === 'search') return view as View;
+    return 'home';
+  });
 
   // Conversations — fetched and polled by dedicated hook
   const { conversations, unreadCount: unreadMessages } = useConversations(appUser);
