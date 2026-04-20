@@ -56,17 +56,44 @@ export const formatPrice = (price: number, currency: string = 'RWF'): string => 
   }).format(price) + ' ' + currency;
 };
  
-export const getPropertyCoordinates = (property: Property): { lat: number; lng: number } | null => {
-  if (property.latitude && property.longitude) {
-    return { lat: property.latitude, lng: property.longitude };
+export const getPropertyCoordinates = (property: Property): { lat: number; lng: number } => {
+  // 1. Precise coordinates take priority — parse as number to handle string values from DB
+  const lat = typeof property.latitude === 'string'
+    ? parseFloat(property.latitude as unknown as string)
+    : property.latitude;
+  const lng = typeof property.longitude === 'string'
+    ? parseFloat(property.longitude as unknown as string)
+    : property.longitude;
+
+  if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
+    return { lat, lng };
   }
+
+  // Stable deterministic hash from property id (works reliably with UUIDs)
+  const idHash = property.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+
+  // 2. Neighborhood-level fallback — case-insensitive lookup
   const neighborhood = property.neighborhood;
-  if (!neighborhood || !neighborhoodCoordinates[neighborhood]) return null;
-  const base = neighborhoodCoordinates[neighborhood];
-  const idNum = parseInt(property.id.replace(/\D/g, ''), 10) || 0;
-  const offsetLat = ((idNum * 7 + 3) % 20 - 10) * 0.0008;
-  const offsetLng = ((idNum * 13 + 5) % 20 - 10) * 0.0008;
-  return { lat: base.lat + offsetLat, lng: base.lng + offsetLng };
+  if (neighborhood) {
+    const coordsKey = Object.keys(neighborhoodCoordinates).find(
+      k => k.toLowerCase() === neighborhood.toLowerCase()
+    );
+    if (coordsKey) {
+      const base = neighborhoodCoordinates[coordsKey];
+      // Deterministic offset per property so markers don't stack on the same spot
+      const offsetLat = ((idHash * 7 + 3) % 20 - 10) * 0.0008;
+      const offsetLng = ((idHash * 13 + 5) % 20 - 10) * 0.0008;
+      return { lat: base.lat + offsetLat, lng: base.lng + offsetLng };
+    }
+    console.warn(`[PropertyMap] Unknown neighborhood: "${neighborhood}" — property ${property.id}`);
+  } else {
+    console.warn(`[PropertyMap] No location data for property ${property.id} — "${property.title}"`);
+  }
+
+  // 3. Last resort: Kigali center with deterministic offset so the marker still appears
+  const fallbackLat = ((idHash * 11 + 7) % 30 - 15) * 0.002;
+  const fallbackLng = ((idHash * 17 + 3) % 30 - 15) * 0.002;
+  return { lat: -1.9450 + fallbackLat, lng: 29.8739 + fallbackLng };
 };
  
 export const formatDate = (dateString: string): string => {

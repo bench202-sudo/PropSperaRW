@@ -108,7 +108,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
   };
  
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center">
       <div className="bg-white w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl animate-slide-up">
         <div className="relative aspect-[16/10] bg-gray-100">
           <img

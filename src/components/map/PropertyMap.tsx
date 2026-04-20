@@ -152,7 +152,14 @@ const PropertyMap: React.FC<PropertyMapProps> = ({
       if (!icon) return;
  
       const marker = L.marker([coords.lat, coords.lng], { icon }).addTo(mapRef.current);
-      marker.on('click', () => setSelectedPin(property));
+      marker.on('click', () => {
+        setSelectedPin(property);
+        mapRef.current?.flyTo(
+          [coords.lat, coords.lng],
+          Math.max(mapRef.current.getZoom(), 15),
+          { animate: true, duration: 0.6 }
+        );
+      });
       marker.on('mouseover', () => onPropertyHover?.(property.id));
       marker.on('mouseout', () => onPropertyHover?.(null));
       markersRef.current.push(marker);
@@ -187,7 +194,7 @@ const PropertyMap: React.FC<PropertyMapProps> = ({
   };
  
   return (
-    <div className={`relative bg-gray-100 ${className}`}>
+    <div className={`relative bg-gray-100 ${className}`} style={{ isolation: 'isolate', zIndex: 0 }}>
       <div ref={mapContainerRef} className="w-full h-full min-h-[400px]" />
  
       {/* Inject styles via dangerouslySetInnerHTML to avoid JSX template literal issues */}
