@@ -23,20 +23,16 @@ interface DBAgent {
   email: string;
   phone: string;
   company_name: string;
-  license_number: string;
   bio: string | null;
   years_experience: number;
   specializations: string[];
   verification_status: 'pending' | 'approved' | 'rejected';
-  verification_documents: string[];
+  verification_docs: string[];
   avatar_url: string | null;
   total_listings: number;
   rating: number;
   is_active: boolean;
-  admin_notes: string | null;
-  feedback_message: string | null;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
+  admin_feedback: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -197,13 +193,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     try {
       const newStatus = action === 'approve' ? 'approved' : 'rejected';
       const agent = agents.find(a => a.id === agentId);
-      const updateData: any = { verification_status: newStatus, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      if (feedback) updateData.feedback_message = feedback;
+      const updateData: any = { verification_status: newStatus, updated_at: new Date().toISOString() };
+      if (feedback) updateData.admin_feedback = feedback;
  
       const { error } = await supabase.from('agents').update(updateData).eq('id', agentId);
       if (error) { setError(`Failed to ${action} agent.`); return; }
  
-      setAgents(prev => prev.map(a => a.id === agentId ? { ...a, verification_status: newStatus, reviewed_at: new Date().toISOString(), feedback_message: feedback || null } : a));
+      setAgents(prev => prev.map(a => a.id === agentId ? { ...a, verification_status: newStatus, admin_feedback: feedback || null } : a));
  
       if (action === 'approve' && agent?.user_id) {
         await supabase.from('users').update({ role: 'agent' }).eq('id', agent.user_id);
