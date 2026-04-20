@@ -58,9 +58,6 @@ interface DBProperty {
   featured: boolean;
   views: number;
   hidden?: boolean;
-  admin_notes: string | null;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
   created_at: string;
   updated_at: string;
   agent?: DBAgent;
@@ -258,7 +255,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     setActionLoading(propertyId);
     try {
       const newStatus = action === 'approve' ? 'approved' : 'rejected';
-      const { error } = await supabase.from('properties').update({ status: newStatus, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', propertyId);
+      const { error } = await supabase.from('properties').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', propertyId);
       if (error) { setError(`Failed to ${action} property.`); return; }
       await fetchProperties();
     } catch (err) {
