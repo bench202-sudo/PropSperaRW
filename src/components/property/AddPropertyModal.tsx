@@ -101,18 +101,47 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     if (!address || address.length < 5) return;
     setGeocoding(true);
     setGeocodeSuccess(false);
+
+    const KIGALI_BOUNDS = { latMin: -2.05, latMax: -1.85, lngMin: 29.95, lngMax: 30.25 };
+
+    const tryNominatim = async (query: string): Promise<{ lat: number; lng: number } | null> => {
+      try {
+        const params = new URLSearchParams({
+          q: query, format: 'json', limit: '1', countrycodes: 'rw',
+        });
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?${params}`,
+          { headers: { 'User-Agent': 'PropSpera/1.0' } }
+        );
+        const data = await res.json();
+        if (data?.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          if (lat >= KIGALI_BOUNDS.latMin && lat <= KIGALI_BOUNDS.latMax &&
+              lng >= KIGALI_BOUNDS.lngMin && lng <= KIGALI_BOUNDS.lngMax) {
+            return { lat, lng };
+          }
+        }
+      } catch { /* silent */ }
+      return null;
+    };
+
     try {
-      // Google Geocoding API — best accuracy for Kigali KG/KK/KN streets
-      const query = encodeURIComponent(`${address}, Kigali, Rwanda`);
-      const res = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=AIzaSyCVQ1nUKY0b5fTqvwtH2U2l9DQQKoFWpkM&region=rw&bounds=-2.05,29.77|-1.85,30.00`
-      );
-      const data = await res.json();
-      if (data.status === 'OK' && data.results && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry.location;
-        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+      const neighborhood = formData.neighborhood || '';
+      // Strategy 1: full address + neighborhood + Kigali
+      let result = await tryNominatim(`${address}, ${neighborhood}, Kigali, Rwanda`.replace(/,\s*,/g, ','));
+      // Strategy 2: address + Kigali only
+      if (!result) result = await tryNominatim(`${address}, Kigali, Rwanda`);
+      // Strategy 3: neighborhood only
+      if (!result && neighborhood) result = await tryNominatim(`${neighborhood}, Kigali, Rwanda`);
+
+      if (result) {
+        setFormData(prev => ({ ...prev, latitude: result!.lat, longitude: result!.lng }));
         setGeocodeSuccess(true);
         setTimeout(() => setGeocodeSuccess(false), 3000);
+      } else {
+        setGeocodeError(true);
+        setTimeout(() => setGeocodeError(false), 3000);
       }
     } catch (err) {
       console.warn('Geocoding failed:', err);
@@ -126,11 +155,12 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
     if (validationBanner) setValidationBanner(false);
-    // Auto-geocode when address is typed
-    if (field === 'address') {
+    // Auto-geocode when address or neighborhood changes
+    if (field === 'address' || (field === 'neighborhood' && formData.address)) {
       setGeocodeError(false);
       if (geocodeTimeout.current) clearTimeout(geocodeTimeout.current);
-      geocodeTimeout.current = setTimeout(() => geocodeAddress(value), 800);
+      const addr = field === 'address' ? value : formData.address;
+      geocodeTimeout.current = setTimeout(() => geocodeAddress(addr), 800);
     }
   };
  
