@@ -35,12 +35,10 @@ const AdminNotifications: React.FC<AdminNotificationsProps> = ({
           agent:agents(
             id,
             full_name,
-            email,
             phone,
             company_name,
             avatar_url,
             verification_status,
-            license_number,
             years_experience,
             specializations
           )
@@ -231,8 +229,8 @@ const AdminNotifications: React.FC<AdminNotificationsProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="font-semibold text-gray-900 text-sm">{notification.title}</h4>
-                      {notification.message && (
-                        <p className="text-sm text-gray-600 mt-0.5">{notification.message}</p>
+                      {notification.body && (
+                        <p className="text-sm text-gray-600 mt-0.5">{notification.body}</p>
                       )}
                     </div>
                     <span className="text-xs text-gray-400 whitespace-nowrap">
@@ -277,16 +275,12 @@ const AdminNotifications: React.FC<AdminNotificationsProps> = ({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
-                        <div className="flex items-center gap-1">
-                          <MailIcon size={12} />
-                          <span className="truncate">{notification.agent.email}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
+{notification.agent.phone && (
+                        <div className="flex items-center gap-1 text-xs text-gray-600 mb-3">
                           <PhoneIcon size={12} />
                           <span>{notification.agent.phone}</span>
                         </div>
-                      </div>
+                        )}
 
                       {notification.agent.verification_status === 'pending' && (
                         <div className="flex gap-2 mt-3">

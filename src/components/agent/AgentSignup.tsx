@@ -174,7 +174,7 @@ const { data: agentId, error } = await supabase.rpc('register_agent', {
           await supabase.from('admin_notifications').insert({
             type: 'agent_signup',
             title: 'New Agent Registration',
-            message: `${formData.full_name} from ${formData.company_name} has submitted an agent application and is awaiting approval.`,
+            body: `${formData.full_name} from ${formData.company_name} has submitted an agent application and is awaiting approval.`,
             agent_id: agentId,
             is_read: false
           });
