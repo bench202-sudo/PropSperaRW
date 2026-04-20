@@ -49,16 +49,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Content */}
       <div className="relative max-w-7xl mx-auto px-4 py-16 sm:py-24 lg:py-32">
         <div className="max-w-2xl">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full mb-6">
-            <ShieldCheckIcon size={16} className="text-blue-400" />
-            <span className="text-sm font-medium">{t('heroBadge')}</span>
-          </div>
+          {/* Badge — hidden */}
  
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-            {t('heroTitle')}
-            <span className="text-blue-400"> {t('heroTitleHighlight')}</span> {t('heroTitleEnd')}
+            <span className="sm:hidden">{t('heroTitle')}<span className="text-blue-400"> {t('heroTitleHighlight')}</span><br />{t('heroTitleEnd')}</span>
+            <span className="hidden sm:inline whitespace-nowrap">{t('heroTitle')}<span className="text-blue-400"> {t('heroTitleHighlight')}</span> {t('heroTitleEnd')}</span>
           </h1>
  
           {/* Subheadline */}
