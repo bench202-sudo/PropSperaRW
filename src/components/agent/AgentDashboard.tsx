@@ -36,6 +36,26 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ onClose }) => {
   });
  
   useEffect(() => { fetchAgentData(); }, [appUser]);
+
+  // Auto-refresh inquiry count when a new inquiry arrives via Realtime
+  useEffect(() => {
+    if (!agentId) return;
+    const channel = supabase
+      .channel(`inquiries:agent:${agentId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'inquiries', filter: `agent_id=eq.${agentId}` },
+        () => {
+          setStats(prev => ({
+            ...prev,
+            totalInquiries: prev.totalInquiries + 1,
+            newInquiries: prev.newInquiries + 1,
+          }));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [agentId]);
  
   const fetchAgentData = async () => {
     if (!appUser?.id) return;
