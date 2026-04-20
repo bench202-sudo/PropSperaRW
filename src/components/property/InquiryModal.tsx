@@ -99,34 +99,25 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
 
       console.log('About to send inquiry...');
 
-      const { data: insertedData, error: insertError } = await supabase
-        .from('inquiries')
-        .insert({
-          property_id: property.id,
-          agent_id: property.agent_id,
-          user_id: appUser?.id || null,
-          buyer_name: formData.name.trim(),
-          buyer_email: formData.email.trim(),
-          buyer_phone: formData.phone.trim() || null,
-          message: formData.message.trim(),
-          property_title: property.title,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
+      const { data: inquiryId, error: rpcError } = await supabase.rpc('submit_inquiry', {
+        p_property_id: property.id,
+        p_agent_id: property.agent_id || null,
+        p_user_id: appUser?.id || null,
+        p_name: formData.name.trim(),
+        p_email: formData.email.trim(),
+        p_phone: formData.phone.trim() || null,
+        p_message: formData.message.trim(),
+        p_property_title: property.title,
+      });
 
-      console.log('Insert completed');
-      console.log('Error if any:', insertError);
+      console.log('Inquiry submitted, id:', inquiryId, 'error:', rpcError);
 
-      if (insertError) {
-        console.log('Full error details:', JSON.stringify(insertError, null, 2));
-        console.error('Error creating inquiry:', insertError);
-        throw new Error('Failed to send inquiry. Please try again.');
+      if (rpcError) {
+        console.error('Error creating inquiry:', rpcError);
+        throw new Error(rpcError.message || 'Failed to send inquiry. Please try again.');
       }
 
       // Send email notification to agent (non-blocking - don't let it prevent success)
-      const inquiryId = insertedData?.id;
       if (inquiryId) {
         // Fire and forget - notification is sent in background
         sendAgentNotification(inquiryId);
