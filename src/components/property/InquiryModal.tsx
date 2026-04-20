@@ -27,6 +27,10 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
 
   // Send email notification to the agent via edge function
   const sendAgentNotification = async (inquiryId: string) => {
+    if (!property.agent_id) {
+      console.warn('No agent_id on property — skipping email notification');
+      return;
+    }
     try {
       setNotificationStatus('pending');
       console.log('Sending email notification to agent for inquiry:', inquiryId);
@@ -34,7 +38,7 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
       const { data, error: fnError } = await supabase.functions.invoke('send-inquiry-notification', {
         body: {
           inquiry_id: inquiryId,
-          agent_id: property.agent_id,
+          agent_id: property.agent_id || null,
           property_id: property.id,
           property_title: property.title,
           property_price: formatPrice(property.price, property.currency),
