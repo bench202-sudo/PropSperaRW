@@ -47,7 +47,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
  
       {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20">
+      <div className="relative max-w-7xl mx-auto px-4 py-6 sm:py-10 lg:py-14">
         <div className="max-w-2xl">
           {/* Badge — hidden */}
  
@@ -103,7 +103,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
  
           {/* Trust Indicators */}
-          <div className="flex flex-wrap items-center gap-6 mt-6 pt-6 border-t border-white/20">
+          <div className="flex flex-wrap items-center gap-6 mt-4 pt-4 border-t border-white/20">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center">
                 <CheckCircleIcon size={20} className="text-blue-400" />
