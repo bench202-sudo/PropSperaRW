@@ -150,51 +150,40 @@ const AgentSignup: React.FC<AgentSignupProps> = ({ onClose, onSuccess }) => {
         }
       }
  
-      const agentData = {
-        user_id: appUser?.id || null,
-        full_name: formData.full_name,
-        phone: formData.phone,
-        company_name: formData.company_name,
-        bio: formData.bio || null,
-        years_experience: parseInt(formData.years_experience) || 0,
-        specializations: formData.specializations,
-        verification_status: 'pending',
-        verification_docs: uploadedDocs,
-        avatar_url: avatarUrl,
-        total_listings: 0,
-        rating: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
- 
-      const { data, error } = await supabase
-        .from('agents').insert([agentData]).select().single();
- 
+const { data: agentId, error } = await supabase.rpc('register_agent', {
+        p_user_id:          appUser?.id ?? null,
+        p_full_name:        formData.full_name,
+        p_phone:            formData.phone,
+        p_company_name:     formData.company_name,
+        p_bio:              formData.bio || null,
+        p_years_experience: parseInt(formData.years_experience) || 0,
+        p_specializations:  formData.specializations,
+        p_verification_docs: uploadedDocs,
+        p_avatar_url:       avatarUrl,
+      });
+
       if (error) {
         console.error('Database error:', error);
         setSubmitError(error.message || 'Failed to submit application. Please try again.');
         setIsSubmitting(false);
         return;
       }
- 
-      if (data) {
+
+      if (agentId) {
         try {
           await supabase.from('admin_notifications').insert({
             type: 'agent_signup',
             title: 'New Agent Registration',
             message: `${formData.full_name} from ${formData.company_name} has submitted an agent application and is awaiting approval.`,
-            agent_id: data.id,
+            agent_id: agentId,
             is_read: false
           });
         } catch (notifError) {
           console.error('Error creating notification:', notifError);
         }
       }
- 
-      if (appUser?.id) {
-        await supabase.from('users').update({ role: 'agent' }).eq('id', appUser.id);
-        await refreshUser();
-      }
+
+      await refreshUser();
  
       setIsSubmitting(false);
       onSuccess();
