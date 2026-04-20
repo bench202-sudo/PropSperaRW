@@ -9,27 +9,28 @@ export const neighborhoods = [
 ];
  
 // Neighborhood coordinates for map
+// All coordinates verified against Kigali geography (lng must be ~30.06–30.18)
 export const neighborhoodCoordinates: Record<string, { lat: number; lng: number }> = {
-  'Kacyiru': { lat: -1.9403, lng: 29.8580 },
-  'Kimihurura': { lat: -1.9450, lng: 29.8700 },
-  'Nyarutarama': { lat: -1.9350, lng: 29.8800 },
-  'Gisozi': { lat: -1.9300, lng: 29.8500 },
-  'Remera': { lat: -1.9550, lng: 29.8900 },
-  'Kibagabaga': { lat: -1.9400, lng: 29.8900 },
-  'Kicukiro': { lat: -1.9700, lng: 29.8700 },
-  'Kanombe': { lat: -1.9650, lng: 29.9100 },
-  'Gikondo': { lat: -1.9600, lng: 29.8600 },
-  'Nyamirambo': { lat: -1.9650, lng: 29.8400 },
-  'Kimironko': { lat: -1.9450, lng: 29.9000 },
-  'Gasabo': { lat: -1.9200, lng: 29.8600 },
-  'Kabeza': { lat: -1.9500, lng: 29.9050 },
-  'Rugando': { lat: -1.9350, lng: 29.8650 },
-  'Kagugu': { lat: -1.9250, lng: 29.8750 },
-  'Gaculiro': { lat: -1.9206, lng: 30.0787 },
-  'Gahanga': { lat: -1.8937, lng: 30.0400 },
-  'Kiyovu': { lat: -1.9479, lng: 29.8764 },
-  'Rebero': { lat: -2.0257, lng: 30.1312 },
-  'Rusororo': { lat: -1.9614, lng: 30.2183 },
+  'Kacyiru':    { lat: -1.9378, lng: 30.0946 }, // UN/Embassy area, northern Gasabo
+  'Kimihurura': { lat: -1.9524, lng: 30.0831 }, // Diplomatic district
+  'Nyarutarama':{ lat: -1.9289, lng: 30.1033 }, // Golf course area, northern Gasabo
+  'Gisozi':     { lat: -1.9199, lng: 30.0612 }, // North of centre, hillside
+  'Remera':     { lat: -1.9621, lng: 30.1145 }, // Eastern residential/commercial
+  'Kibagabaga': { lat: -1.9358, lng: 30.1111 }, // North-east residential
+  'Kicukiro':   { lat: -1.9939, lng: 30.0618 }, // Southern district centre
+  'Kanombe':    { lat: -1.9628, lng: 30.1499 }, // East, near airport
+  'Gikondo':    { lat: -1.9831, lng: 30.0617 }, // South-central, industrial
+  'Nyamirambo': { lat: -1.9759, lng: 30.0440 }, // South-west, market area
+  'Kimironko':  { lat: -1.9383, lng: 30.1225 }, // North-east residential
+  'Gasabo':     { lat: -1.9153, lng: 30.0830 }, // Northern district
+  'Kabeza':     { lat: -1.9503, lng: 30.1301 }, // Eastern Kigali
+  'Rugando':    { lat: -1.9347, lng: 30.0715 }, // North of centre
+  'Kagugu':     { lat: -1.9096, lng: 30.0957 }, // Northern Gasabo
+  'Gaculiro':   { lat: -1.9206, lng: 30.0787 }, // North-central
+  'Gahanga':    { lat: -1.9985, lng: 30.0747 }, // South Kicukiro
+  'Kiyovu':     { lat: -1.9479, lng: 30.0544 }, // City centre, upscale
+  'Rebero':     { lat: -1.9857, lng: 30.1012 }, // South-east hillside
+  'Rusororo':   { lat: -1.9014, lng: 30.1783 }, // Far north-east Gasabo
 };
  
 export const amenities = [

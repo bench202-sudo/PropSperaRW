@@ -24,7 +24,7 @@ const typeLabels: Record<string, string> = {
 };
  
 // Kigali center coordinates
-const KIGALI_CENTER = { lat: -1.9450, lng: 29.8739 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const DEFAULT_ZOOM = 13;
  
 interface PropertyMapProps {
