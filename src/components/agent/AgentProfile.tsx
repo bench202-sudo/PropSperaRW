@@ -31,6 +31,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
 }) => {
   const { appUser } = useAuth();
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<ProfileTab>('about');
   const agentProperties = properties.filter(p => p.agent_id === agent.id && p.status === 'approved');
   const agentRating = useAgentRating(agent.id);
 
