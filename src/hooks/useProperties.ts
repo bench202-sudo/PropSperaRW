@@ -131,6 +131,10 @@ export const useProperties = (userRole?: string | null) => {
             {
               id: agent.id,
               user_id: agent.user_id || '',
+              full_name: user?.full_name || '',
+              avatar_url: user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Agent')}&background=2563eb&color=fff`,
+              email: user?.email || '',
+              phone: user?.phone || '',
               company_name: agent.company_name || '',
               license_number: agent.license_number || '',
               bio: agent.bio || '',
@@ -140,7 +144,6 @@ export const useProperties = (userRole?: string | null) => {
               verification_documents: agent.verification_documents || [],
               total_listings: agent.total_listings || 0,
               rating: agent.rating || 0,
-              avatar_url: user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Agent')}&background=2563eb&color=fff`,
               created_at: agent.created_at,
               user: user ? {
                 id: user.id,
@@ -231,6 +234,10 @@ export const useAgents = () => {
         return {
           id: agent.id,
           user_id: agent.user_id || '',
+          full_name: user?.full_name || '',
+          avatar_url: user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Agent')}&background=2563eb&color=fff`,
+          email: user?.email || '',
+          phone: user?.phone || '',
           company_name: agent.company_name || '',
           license_number: agent.license_number || '',
           bio: agent.bio || '',
@@ -240,7 +247,6 @@ export const useAgents = () => {
           verification_documents: agent.verification_documents || [],
           total_listings: agent.total_listings || 0,
           rating: agent.rating || 0,
-          avatar_url: user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Agent')}&background=2563eb&color=fff`,
           created_at: agent.created_at,
           user: user ? {
             id: user.id,

@@ -66,6 +66,7 @@ import HelpCenterModal from '@/components/modals/HelpCenterModal';
 import TermsOfServiceModal from '@/components/modals/TermsOfServiceModal';
 import PrivacyPolicyModal from '@/components/modals/PrivacyPolicyModal';
 import InstallPrompt from '@/components/modals/InstallPrompt';
+import ErrorBoundary from '@/components/ErrorBoundary';
  
  
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1204,17 +1205,19 @@ const AppLayout: React.FC = () => {
       )}
  
       {selectedAgent && (
-        <AgentProfile
-          agent={selectedAgent}
-          properties={properties}
-          onClose={() => setSelectedAgent(null)}
-          onContact={handleContactAgent}
-          onSelectProperty={(p) => {
-            setSelectedAgent(null);
-            setSelectedProperty(p);
-          }}
-          onLoginRequired={() => openAuthModal('login')}
-        />
+        <ErrorBoundary onError={() => setSelectedAgent(null)}>
+          <AgentProfile
+            agent={selectedAgent}
+            properties={properties}
+            onClose={() => setSelectedAgent(null)}
+            onContact={handleContactAgent}
+            onSelectProperty={(p) => {
+              setSelectedAgent(null);
+              setSelectedProperty(p);
+            }}
+            onLoginRequired={() => openAuthModal('login')}
+          />
+        </ErrorBoundary>
       )}
  
  

@@ -32,6 +32,10 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
   const { appUser } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<ProfileTab>('about');
+  const agentName = agent.full_name || agent.user?.full_name || 'Agent';
+  const agentAvatar = agent.avatar_url || agent.user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(agentName)}&background=2563eb&color=fff`;
+  const agentPhone = agent.phone || agent.user?.phone;
+  const agentEmail = agent.email || agent.user?.email;
   const agentProperties = properties.filter(p => p.agent_id === agent.id && p.status === 'approved');
   const agentRating = useAgentRating(agent.id);
 
@@ -62,8 +66,8 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
           <div className="flex items-center gap-4">
             <div className="relative">
               <img 
-                src={agent.avatar_url} 
-                alt={agent.full_name}
+                src={agentAvatar} 
+                alt={agentName}
                 className="w-20 h-20 rounded-full object-cover border-4 border-white/30"
               />
               {agent.verification_status === 'approved' && (
@@ -74,7 +78,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
             </div>
             
             <div>
-              <h2 className="text-xl font-bold mb-1">{agent.full_name}</h2>
+              <h2 className="text-xl font-bold mb-1">{agentName}</h2>
               <p className="text-blue-100">{agent.company_name}</p>
               
               <div className="flex items-center gap-3 mt-2">
@@ -191,26 +195,26 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3">{t('contactInfoLabel')}</h3>
                 <div className="space-y-3">
-                  {agent.phone && (
+                  {agentPhone && (
                     <a 
-                      href={`tel:${agent.phone}`}
+                      href={`tel:${agentPhone}`}
                       className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                     >
                       <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                         <PhoneIcon size={18} />
                       </div>
-                      <span>{agent.phone}</span>
+                      <span>{agentPhone}</span>
                     </a>
                   )}
-                  {agent.email && (
+                  {agentEmail && (
                     <a 
-                      href={`mailto:${agent.email}`}
+                      href={`mailto:${agentEmail}`}
                       className="flex items-center gap-3 text-gray-600 hover:text-blue-600 transition-colors"
                     >
                       <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                         <MailIcon size={18} />
                       </div>
-                      <span>{agent.email}</span>
+                      <span>{agentEmail}</span>
                     </a>
                   )}
                   <div className="flex items-center gap-3 text-gray-500">
@@ -244,7 +248,7 @@ const AgentProfile: React.FC<AgentProfileProps> = ({
           {activeTab === 'reviews' && (
             <AgentReviewsSection
               agentId={agent.id}
-              agentName={agent.full_name || 'this agent'}
+              agentName={agentName}
               currentUserId={currentUserId}
               currentUserName={currentUserName}
               currentUserAvatar={currentUserAvatar}

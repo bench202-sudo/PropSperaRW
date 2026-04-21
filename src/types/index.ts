@@ -22,6 +22,11 @@ export interface Agent {
   id: string;
   user_id: string;
   user?: User;
+  // Convenience fields populated from agent.user by the data layer
+  full_name?: string;
+  avatar_url?: string;
+  email?: string;
+  phone?: string;
   company_name?: string;
   license_number?: string;
   bio?: string;
