@@ -64,7 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const initialLoadDone = useRef(false);
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('propspera_lang');
-    return (saved === 'fr' ? 'fr' : 'en') as Language;
+    if (saved === 'fr' || saved === 'rw' || saved === 'en') return saved as Language;
+    const browserLang = navigator.language?.toLowerCase() || '';
+    if (browserLang.startsWith('rw')) return 'rw';
+    if (browserLang.startsWith('fr')) return 'fr';
+    return 'en';
   });
  
   const setLanguage = (lang: Language) => {

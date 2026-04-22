@@ -101,15 +101,22 @@ const Header: React.FC<HeaderProps> = ({
           {/* Right Actions */}
           <div className="flex items-center gap-1.5">
             {/* Language Switcher — always visible */}
-            <div className="relative">
-              <button
-                onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
-                className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
-                title={language === 'en' ? 'Switch to French' : 'Passer en anglais'}
-              >
-                <span>{language === 'en' ? '🇬🇧' : '🇫🇷'}</span>
-                <span className="hidden sm:inline">{language === 'en' ? 'EN' : 'FR'}</span>
-              </button>
+            <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden">
+              {(['en', 'fr', 'rw'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`flex items-center gap-1 px-2 py-1.5 text-xs font-semibold transition-colors ${
+                    language === lang
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  title={lang === 'en' ? 'English' : lang === 'fr' ? 'Français' : 'Kinyarwanda'}
+                >
+                  <span>{lang === 'en' ? '🇬🇧' : lang === 'fr' ? '🇫🇷' : '🇷🇼'}</span>
+                  <span className="hidden sm:inline">{lang.toUpperCase()}</span>
+                </button>
+              ))}
             </div>
  
             {compareCount > 0 && onCompareClick && (
