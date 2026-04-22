@@ -230,9 +230,19 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     const { data: urlData } = supabase.storage.from('property-videos').getPublicUrl(fileName);
     return urlData.publicUrl;
   };
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (!formData.property_type) newErrors.property_type = 'Property type is required';
+    if (!formData.listing_type) newErrors.listing_type = 'Listing type is required';
+    if (!formData.price) newErrors.price = 'Price is required';
+    if (!formData.neighborhood) newErrors.neighborhood = 'Neighborhood is required';
+    if (formData.images.length === 0) newErrors.images = 'At least one image is required';
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
- 
+
   const uploadImages = async (): Promise<string[]> => {
     const uploadedUrls: string[] = [];
     for (const file of formData.images) {
