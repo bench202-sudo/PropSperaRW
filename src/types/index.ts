@@ -66,6 +66,7 @@ export interface Property {
   latitude?: number;
   longitude?: number;
   images: string[];
+  video_url?: string | null;
   amenities: string[];
   status: PropertyStatus;
   featured: boolean;

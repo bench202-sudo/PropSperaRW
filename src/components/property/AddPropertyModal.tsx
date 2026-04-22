@@ -4,6 +4,9 @@ import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { PropertyType, ListingType } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
 import { XIcon, ImageIcon, ChevronDownIcon, CheckCircleIcon, AlertCircleIcon } from '@/components/icons/Icons';
+
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
  
 interface AddPropertyModalProps {
   onClose: () => void;
@@ -38,8 +41,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     latitude: null as number | null,
     longitude: null as number | null,
     amenities: [] as string[],
-    images: [] as File[]
+    images: [] as File[],
+    video: null as File | null
   });
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationBanner, setValidationBanner] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
@@ -183,16 +189,47 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
   const removeImage = (index: number) => {
     setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   };
- 
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.title.trim()) newErrors.title = 'Title is required';
-    if (!formData.property_type) newErrors.property_type = 'Property type is required';
-    if (!formData.listing_type) newErrors.listing_type = 'Listing type is required';
-    if (!formData.price) newErrors.price = 'Price is required';
-    if (!formData.neighborhood) newErrors.neighborhood = 'Neighborhood is required';
-    if (formData.images.length === 0) newErrors.images = 'At least one image is required';
-    setErrors(newErrors);
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+      setVideoError('Only MP4, MOV, or WebM videos are allowed.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      setVideoError('Video must be under 50 MB.');
+      e.target.value = '';
+      return;
+    }
+    setVideoError(null);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    const url = URL.createObjectURL(file);
+    setVideoPreviewUrl(url);
+    setFormData(prev => ({ ...prev, video: file }));
+    e.target.value = '';
+  };
+
+  const removeVideo = () => {
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoPreviewUrl(null);
+    setFormData(prev => ({ ...prev, video: null }));
+    setVideoError(null);
+  };
+
+  const uploadVideo = async (): Promise<string | null> => {
+    if (!formData.video) return null;
+    const file = formData.video;
+    const ext = file.name.split('.').pop();
+    const fileName = `${user?.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('property-videos')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+    if (uploadError) throw new Error(`Failed to upload video: ${uploadError.message}`);
+    const { data: urlData } = supabase.storage.from('property-videos').getPublicUrl(fileName);
+    return urlData.publicUrl;
+  };
     return Object.keys(newErrors).length === 0;
   };
  
@@ -219,7 +256,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     setIsSubmitting(true);
     setError(null);
     try {
-      const imageUrls = await uploadImages();
+      const [imageUrls, videoUrl] = await Promise.all([uploadImages(), uploadVideo()]);
       const { error: insertError } = await supabase.from('properties').insert({
         agent_id: agentId,
         title: formData.title.trim(),
@@ -238,6 +275,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
         images: imageUrls,
+        video_url: videoUrl,
         amenities: isLand ? [] : formData.amenities,
         furnished: !isLand && formData.listing_type === 'rent' && formData.furnished ? formData.furnished : null,
         status: 'pending',
@@ -306,7 +344,48 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
             </div>
             {errors.images && <p className="text-red-500 text-xs mt-1">{errors.images}</p>}
           </div>
- 
+
+          {/* Video Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload property video <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            {videoPreviewUrl && formData.video ? (
+              <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
+                <video
+                  src={videoPreviewUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full h-full object-contain"
+                />
+                <button
+                  onClick={removeVideo}
+                  className="absolute top-2 right-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                  title="Remove video"
+                >
+                  <XIcon size={16} />
+                </button>
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md truncate max-w-[80%]">
+                  {formData.video.name}
+                </div>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400">
+                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                <span className="text-sm text-gray-500">Click to upload video (MP4, MOV, WebM · max 50 MB)</span>
+                <input
+                  type="file"
+                  accept="video/mp4,video/quicktime,video/webm"
+                  className="hidden"
+                  onChange={handleVideoUpload}
+                />
+              </label>
+            )}
+            {videoError && <p className="text-red-500 text-xs mt-1">{videoError}</p>}
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('titleFieldLabel')}</label>

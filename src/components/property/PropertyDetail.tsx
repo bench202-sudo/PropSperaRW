@@ -18,6 +18,15 @@ interface PropertyDetailProps {
 const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onContact, onFavorite, isFavorite = false }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { t } = useLanguage();
+
+  // Build a unified media array: video first (if present), then images
+  const videoUrl: string | null = (property as any).video_url ?? null;
+  const mediaItems: Array<{ type: 'image' | 'video'; src: string }> = [
+    ...(videoUrl ? [{ type: 'video' as const, src: videoUrl }] : []),
+    ...property.images.map(src => ({ type: 'image' as const, src })),
+  ];
+  const totalMedia = mediaItems.length;
+  const currentMedia = mediaItems[currentImageIndex] ?? null;
  
   const [localViews, setLocalViews] = useState(property.views || 0);
  
@@ -66,8 +75,8 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
     if (property.images[0]) setOG('og:image', property.images[0]);
   }, [property]);
  
-  const nextImage = () => setCurrentImageIndex(prev => prev === property.images.length - 1 ? 0 : prev + 1);
-  const prevImage = () => setCurrentImageIndex(prev => prev === 0 ? property.images.length - 1 : prev - 1);
+  const nextImage = () => setCurrentImageIndex(prev => prev === totalMedia - 1 ? 0 : prev + 1);
+  const prevImage = () => setCurrentImageIndex(prev => prev === 0 ? totalMedia - 1 : prev - 1);
  
   const showMortgageCalculator = property.listing_type === 'sale' && property.price > 0;
   const builtArea = (property as any).built_area;
@@ -111,35 +120,61 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center">
       <div className="bg-white w-full max-w-2xl max-h-[95vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl animate-slide-up">
         <div className="relative aspect-[16/10] bg-gray-100">
-          <img
-            src={property.images[currentImageIndex]}
-            alt={`${property.bedrooms ? property.bedrooms + ' bedroom ' : ''}${property.property_type} in ${property.neighborhood || 'Kigali'} — photo ${currentImageIndex + 1} of ${property.images.length}`}
-            className="w-full h-full object-cover"
-          />
+          {currentMedia?.type === 'video' ? (
+            <video
+              key={currentMedia.src}
+              src={currentMedia.src}
+              controls
+              preload="metadata"
+              playsInline
+              className="w-full h-full object-contain bg-black"
+              onError={(e) => { (e.currentTarget as HTMLVideoElement).style.display = 'none'; }}
+            />
+          ) : currentMedia ? (
+            <img
+              src={currentMedia.src}
+              alt={`${property.bedrooms ? property.bedrooms + ' bedroom ' : ''}${property.property_type} in ${property.neighborhood || 'Kigali'} — photo ${currentImageIndex + (videoUrl ? 0 : 1)} of ${property.images.length}`}
+              className="w-full h-full object-cover"
+            />
+          ) : null}
           <button onClick={onClose} className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors">
             <XIcon size={20} />
           </button>
-          {property.images.length > 1 && (
+          {totalMedia > 1 && (
             <>
               <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"><ChevronLeftIcon size={20} /></button>
               <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"><ChevronRightIcon size={20} /></button>
             </>
           )}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {property.images.map((_, index) => (
+            {mediaItems.map((item, index) => (
               <button key={index} onClick={() => setCurrentImageIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/75'}`} />
+                className={`transition-all rounded-full ${index === currentImageIndex ? 'bg-white w-6 h-2' : 'bg-white/50 hover:bg-white/75 w-2 h-2'}`}>
+                {item.type === 'video' && index !== currentImageIndex && (
+                  <span className="sr-only">Video</span>
+                )}
+              </button>
             ))}
           </div>
+          {/* Top-left overlay badges */}
           <div className="absolute top-4 left-4 flex gap-2">
-            {property.featured && <span className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">{t('featured')}</span>}
-            <span className={`px-3 py-1 rounded-md text-sm font-semibold ${property.listing_type === 'sale' ? 'bg-terracotta-600 text-white' : 'bg-emerald-600 text-white'}`}>
-              {property.listing_type === 'sale' ? t('forSaleFilter') : t('forRentFilter')}
-            </span>
-            {property.listing_type === 'rent' && furnished && (
-              <span className={`px-3 py-1 rounded-md text-sm font-semibold ${furnished === 'furnished' ? 'bg-violet-600 text-white' : 'bg-gray-600 text-white'}`}>
-                {furnished === 'furnished' ? t('furnished') : t('unfurnished')}
-              </span>
+            {currentMedia?.type === 'video' ? (
+              <div className="flex items-center gap-1.5 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Video
+              </div>
+            ) : (
+              <>
+                {property.featured && <span className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-semibold">{t('featured')}</span>}
+                <span className={`px-3 py-1 rounded-md text-sm font-semibold ${property.listing_type === 'sale' ? 'bg-terracotta-600 text-white' : 'bg-emerald-600 text-white'}`}>
+                  {property.listing_type === 'sale' ? t('forSaleFilter') : t('forRentFilter')}
+                </span>
+                {property.listing_type === 'rent' && furnished && (
+                  <span className={`px-3 py-1 rounded-md text-sm font-semibold ${furnished === 'furnished' ? 'bg-violet-600 text-white' : 'bg-gray-600 text-white'}`}>
+                    {furnished === 'furnished' ? t('furnished') : t('unfurnished')}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

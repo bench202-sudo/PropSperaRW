@@ -4,6 +4,9 @@ import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { Property, PropertyType, ListingType, PropertyStatus } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
 import { XIcon, ImageIcon, ChevronDownIcon, CheckCircleIcon, AlertCircleIcon, TrashIcon } from '@/components/icons/Icons';
+
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
  
 interface EditPropertyModalProps {
   property: Property;
@@ -40,10 +43,15 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
     longitude: (property as any).longitude || null as number | null,
     amenities: property.amenities || [],
     existingImages: property.images || [],
-    newImages: [] as File[]
+    newImages: [] as File[],
+    existingVideoUrl: (property as any).video_url || null as string | null,
+    newVideo: null as File | null
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [videoToDelete, setVideoToDelete] = useState(false);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeSuccess, setGeocodeSuccess] = useState(false);
   const [geocodeError, setGeocodeError] = useState(false);
@@ -103,6 +111,52 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
  
   const removeExistingImage = (imageUrl: string) => setImagesToDelete(prev => [...prev, imageUrl]);
   const removeNewImage = (index: number) => setFormData(prev => ({ ...prev, newImages: prev.newImages.filter((_, i) => i !== index) }));
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+      setVideoError('Only MP4, MOV, or WebM videos are allowed.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      setVideoError('Video must be under 50 MB.');
+      e.target.value = '';
+      return;
+    }
+    setVideoError(null);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    const url = URL.createObjectURL(file);
+    setVideoPreviewUrl(url);
+    setVideoToDelete(false);
+    setFormData(prev => ({ ...prev, newVideo: file }));
+    e.target.value = '';
+  };
+
+  const removeVideo = () => {
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoPreviewUrl(null);
+    setVideoError(null);
+    if (formData.newVideo) {
+      setFormData(prev => ({ ...prev, newVideo: null }));
+    } else {
+      setVideoToDelete(true);
+    }
+  };
+
+  const uploadNewVideo = async (): Promise<string | null> => {
+    if (!formData.newVideo) return null;
+    const file = formData.newVideo;
+    const ext = file.name.split('.').pop();
+    const fileName = `${user?.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('property-videos')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+    if (uploadError) throw new Error(`Failed to upload video: ${uploadError.message}`);
+    const { data: urlData } = supabase.storage.from('property-videos').getPublicUrl(fileName);
+    return urlData.publicUrl;
+  };
  
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -135,9 +189,20 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
     setIsSubmitting(true);
     setError(null);
     try {
-      const newImageUrls = await uploadNewImages();
+      const [newImageUrls, newVideoUrl] = await Promise.all([uploadNewImages(), uploadNewVideo()]);
       const remainingImages = formData.existingImages.filter(img => !imagesToDelete.includes(img));
       const allImages = [...remainingImages, ...newImageUrls];
+
+      // Determine final video_url
+      let finalVideoUrl: string | null;
+      if (newVideoUrl) {
+        finalVideoUrl = newVideoUrl;
+      } else if (videoToDelete) {
+        finalVideoUrl = null;
+      } else {
+        finalVideoUrl = formData.existingVideoUrl;
+      }
+
       const { error: updateError } = await supabase.from('properties').update({
         title: formData.title.trim(),
         description: formData.description.trim() || null,
@@ -154,17 +219,29 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
         images: allImages,
+        video_url: finalVideoUrl,
         amenities: formData.amenities,
         furnished: formData.listing_type === 'rent' && formData.furnished ? formData.furnished : null,
         updated_at: new Date().toISOString()
       }).eq('id', property.id);
       if (updateError) throw new Error(`Failed to update property: ${updateError.message}`);
+
+      // Cleanup deleted images from storage
       for (const imageUrl of imagesToDelete) {
         try {
           const path = imageUrl.split('/property-images/')[1];
           if (path) await supabase.storage.from('property-images').remove([path]);
         } catch (e) { console.warn('Failed to delete image:', e); }
       }
+
+      // Cleanup deleted video from storage
+      if (videoToDelete && formData.existingVideoUrl) {
+        try {
+          const path = formData.existingVideoUrl.split('/property-videos/')[1];
+          if (path) await supabase.storage.from('property-videos').remove([path]);
+        } catch (e) { console.warn('Failed to delete video:', e); }
+      }
+
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Failed to update property. Please try again.');
@@ -222,7 +299,69 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
             </div>
             {errors.images && <p className="text-red-500 text-xs mt-1">{errors.images}</p>}
           </div>
- 
+
+          {/* Video Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Property video <span className="text-gray-400 font-normal">(optional · one video max)</span>
+            </label>
+            {/* Show existing video if not deleted and no new video queued */}
+            {formData.existingVideoUrl && !videoToDelete && !formData.newVideo ? (
+              <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
+                <video
+                  src={formData.existingVideoUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full h-full object-contain"
+                />
+                <button
+                  onClick={removeVideo}
+                  className="absolute top-2 right-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                  title="Remove video"
+                >
+                  <XIcon size={16} />
+                </button>
+                <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md">Current video</span>
+              </div>
+            ) : formData.newVideo && videoPreviewUrl ? (
+              <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
+                <video
+                  src={videoPreviewUrl}
+                  controls
+                  preload="metadata"
+                  className="w-full h-full object-contain"
+                />
+                <button
+                  onClick={removeVideo}
+                  className="absolute top-2 right-2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                  title="Remove video"
+                >
+                  <XIcon size={16} />
+                </button>
+                <div className="absolute bottom-2 left-2 flex gap-1.5">
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-md">New</span>
+                  <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-md truncate max-w-[60%]">{formData.newVideo.name}</span>
+                </div>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-xl border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400">
+                  <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+                <span className="text-sm text-gray-500">
+                  {videoToDelete ? 'Video removed — upload a new one (optional)' : 'Click to upload video (MP4, MOV, WebM · max 50 MB)'}
+                </span>
+                <input
+                  type="file"
+                  accept="video/mp4,video/quicktime,video/webm"
+                  className="hidden"
+                  onChange={handleVideoUpload}
+                />
+              </label>
+            )}
+            {videoError && <p className="text-red-500 text-xs mt-1">{videoError}</p>}
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('titleFieldLabel')}</label>

@@ -24,6 +24,7 @@ export interface DBProperty {
   latitude: number | null;
   longitude: number | null;
   images: string[];
+  video_url: string | null;
   amenities: string[];
   status: 'pending' | 'approved' | 'rejected' | 'sold' | 'rented';
   featured: boolean;
