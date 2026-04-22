@@ -23,6 +23,7 @@ interface DBProperty {
   latitude: number | null;
   longitude: number | null;
   images: string[];
+  video_url: string | null;
   amenities: string[];
   status: 'pending' | 'approved' | 'rejected' | 'sold' | 'rented';
   featured: boolean;
@@ -55,6 +56,7 @@ const transformProperty = (dbProperty: DBProperty, agentsMap: Record<string, any
     latitude: dbProperty.latitude || undefined,
     longitude: dbProperty.longitude || undefined,
     images: dbProperty.images || [],
+    video_url: dbProperty.video_url ?? null,
     amenities: dbProperty.amenities || [],
     status: dbProperty.status,
     featured: dbProperty.featured,

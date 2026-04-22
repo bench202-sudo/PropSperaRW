@@ -90,7 +90,7 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ onClose }) => {
         currency: p.currency || 'RWF', bedrooms: p.bedrooms, bathrooms: p.bathrooms,
         area_sqm: p.area_sqm, location: p.location || 'Kigali, Rwanda',
         neighborhood: p.neighborhood, address: p.address,
-        images: p.images || [], amenities: p.amenities || [],
+        images: p.images || [], video_url: p.video_url ?? null, amenities: p.amenities || [],
         status: p.status, featured: p.featured || false, views: p.views || 0, created_at: p.created_at
       }));
       setProperties(transformedProperties);

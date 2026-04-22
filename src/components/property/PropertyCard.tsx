@@ -67,6 +67,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           )}
           {showStatus && getStatusBadge()}
         </div>
+        {(property as any).video_url && (
+          <div className="absolute bottom-3 left-3">
+            <span className="bg-black/70 text-white px-2 py-1 rounded-md text-xs font-semibold flex items-center gap-1">▶ Video</span>
+          </div>
+        )}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           {onFavorite && (
             <button onClick={handleFavoriteClick} className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
