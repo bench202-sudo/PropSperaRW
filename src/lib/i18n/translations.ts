@@ -1190,7 +1190,7 @@ const translations = {
     mcShowingFirst: 'Werekana {count} bya mbere kuri {total} amezi.',
     // Hero Section
     heroTitle: 'Shaka umutungo',
-    heroTitleHighlight: 'wawe',
+    heroTitleHighlight: 'ugukwiriye',
     heroTitleEnd: 'i Kigali',
     heroSubtitle: "Huza n'aba Agenti bemewe kandi ubone inyubako nziza m'umurwa mukuru w'u Rwanda.",
     heroSearchPlaceholder: "Shakisha akarere, ubwoko bw'umutungo...",
@@ -1240,9 +1240,9 @@ const translations = {
     verified: 'Bemewe',
     response: 'Gusubiza',
     // Featured / Latest Properties
-    featuredProperties: 'Imutungo yashizwe ahagaragara',
+    featuredProperties: 'Imitungo yashizwe ahagaragara',
     latestProperties: 'Itangazo Rishya',
-    featuredPropertiesSubtitle: "Imutungo yatoranijwe kurutonde i Kigali",
+    featuredPropertiesSubtitle: "Imitungo yatoranijwe kurutonde i Kigali",
     latestPropertiesSubtitle: "Reba itangazo rishya ry'umutungo",
     viewAll: 'Reba byose',
     viewAllProperties: 'Reba umutungo wose',
