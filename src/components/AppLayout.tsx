@@ -406,7 +406,7 @@ const AppLayout: React.FC = () => {
         }
         break;
       case 'add':
-        if (appUser?.role === 'agent') {
+        if (appUser?.role === 'agent' || appUser?.role === 'homeowner') {
           setShowAgentDashboard(true);
         }
         break;
@@ -621,7 +621,7 @@ const AppLayout: React.FC = () => {
         onProfileClick={handleLogout}
         onAccountSettingsClick={appUser ? () => setShowProfilePage(true) : undefined}
         onAdminClick={appUser?.role === 'admin' ? () => setShowAdminDashboard(true) : undefined}
-        onAgentDashboardClick={appUser?.role === 'agent' ? () => setShowAgentDashboard(true) : undefined}
+        onAgentDashboardClick={(appUser?.role === 'agent' || appUser?.role === 'homeowner') ? () => setShowAgentDashboard(true) : undefined}
         onLoginClick={() => openAuthModal('login')}
         onNavigate={handleHeaderNavigate}
         onOpenNotificationPreferences={() => {

@@ -158,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({
                   )}
                 </button>
  
-                {currentUser.role === 'agent' && onAgentDashboardClick && (
+                {(currentUser.role === 'agent' || currentUser.role === 'homeowner') && onAgentDashboardClick && (
                   <button onClick={onAgentDashboardClick}
                     className="hidden sm:flex w-10 h-10 rounded-full items-center justify-center hover:bg-gray-100 transition-colors"
                     title="Agent Dashboard">
@@ -223,7 +223,7 @@ const Header: React.FC<HeaderProps> = ({
                           {t('notificationSettings')}
                         </button>
 
-                        {currentUser.role === 'agent' && onAgentDashboardClick && (
+                        {(currentUser.role === 'agent' || currentUser.role === 'homeowner') && onAgentDashboardClick && (
                           <button onClick={() => { setShowProfileMenu(false); onAgentDashboardClick(); }}
                             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
                             <BuildingIcon size={16} />

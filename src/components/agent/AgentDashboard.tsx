@@ -64,10 +64,12 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ onClose }) => {
       let { data: agentData, error: agentError } = await supabase
         .from('agents').select('id, verification_status').eq('user_id', appUser.id).single();
  
-      if (agentError && appUser.role === 'agent') {
+      if (agentError && (appUser.role === 'agent' || appUser.role === 'homeowner')) {
+        const isHomeowner = appUser.role === 'homeowner';
         const { data: newAgent, error: createError } = await supabase
           .from('agents').insert({
-            user_id: appUser.id, verification_status: 'pending',
+            user_id: appUser.id,
+            verification_status: isHomeowner ? 'approved' : 'pending',
             years_experience: 0, specializations: [], verification_documents: [],
             total_listings: 0, rating: 0
           }).select('id, verification_status').single();
@@ -78,7 +80,8 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ onClose }) => {
       if (!agentData) { setLoading(false); return; }
       setAgentId(agentData.id);
       setAgentStatus(agentData.verification_status);
-      if (agentData.verification_status !== 'approved') { setLoading(false); return; }
+      const effectivelyApproved = agentData.verification_status === 'approved' || appUser.role === 'homeowner';
+      if (!effectivelyApproved) { setLoading(false); return; }
  
       const { data: propertiesData, error: propertiesError } = await supabase
         .from('properties').select('*').eq('agent_id', agentData.id).order('created_at', { ascending: false });
@@ -166,7 +169,7 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ onClose }) => {
     return map[status] || status;
   };
  
-  if (!loading && agentStatus !== 'approved') {
+  if (!loading && agentStatus !== 'approved' && appUser?.role !== 'homeowner') {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white w-full max-w-md rounded-2xl p-6 text-center">

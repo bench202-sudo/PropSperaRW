@@ -70,12 +70,12 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
       try {
         const { data, error } = await supabase
           .from('agents')
-          .select('id, verification_status, is_homeowner')
+          .select('id, verification_status')
           .eq('user_id', appUser.id)
           .single();
         if (error) { setError('Could not verify your account. Please try again.'); return; }
-        // Agents need approval; homeowners are auto-approved
-        if (data.verification_status !== 'approved') {
+        // Homeowners are auto-approved; agents require admin approval
+        if (appUser.role !== 'homeowner' && data.verification_status !== 'approved') {
           setError('Your agent account is not yet approved. Please wait for admin approval before adding properties.');
           return;
         }
