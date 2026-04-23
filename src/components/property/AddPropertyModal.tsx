@@ -293,6 +293,18 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
         views: 0
       });
       if (insertError) throw new Error(`Failed to create property: ${insertError.message}`);
+      // Notify admin of the new submission (non-blocking)
+      try {
+        await supabase.from('admin_notifications').insert({
+          type: 'property_submission',
+          title: 'New Property Submission',
+          body: `A new ${formData.property_type} listing "${formData.title.trim()}" has been submitted for approval.`,
+          agent_id: agentId,
+          is_read: false,
+        });
+      } catch (notifErr) {
+        console.warn('Could not create admin notification:', notifErr);
+      }
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Failed to submit property. Please try again.');

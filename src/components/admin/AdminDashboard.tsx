@@ -168,6 +168,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     fetchProperties();
     fetchUnreadCount();
   }, []);
+
+  // Refresh properties + unread count whenever the admin opens the listings tab
+  useEffect(() => {
+    if (activeTab === 'listings') {
+      fetchProperties();
+    }
+    if (activeTab === 'notifications') {
+      fetchUnreadCount();
+    }
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Realtime: auto-update when a new pending property or notification is inserted
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin:new-pending-properties')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'properties' },
+        () => { fetchProperties(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'admin_notifications' },
+        () => { fetchUnreadCount(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
  
   // ── PATCH 1: Compute inactive agents and hidden listings ──────────────────
   const inactiveAgents = agents.filter(a => a.is_active === false);
