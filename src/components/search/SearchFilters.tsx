@@ -132,6 +132,22 @@ const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
           {t('villasChip')}
         </button>
         <button 
+          onClick={() => onFilterChange({ ...filters, property_type: filters.property_type === 'commercial' ? 'all' : 'commercial' })}
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            filters.property_type === 'commercial' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {t('commercialChip')}
+        </button>
+        <button 
+          onClick={() => onFilterChange({ ...filters, property_type: filters.property_type === 'land' ? 'all' : 'land' })}
+          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            filters.property_type === 'land' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {t('landChip')}
+        </button>
+        <button 
           onClick={() => onFilterChange({ ...filters, verified_only: !filters.verified_only })}
           className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             filters.verified_only ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
