@@ -18,6 +18,7 @@ import LandForSaleKigali from './pages/LandForSaleKigali';
 import RealEstateAgentsKigali from './pages/RealEstateAgentsKigali';
 import HousesForRentKacyiru from './pages/HousesForRentKacyiru';
 import HousesForRentKimihurura from './pages/HousesForRentKimihurura';
+import PropertyPage from './pages/PropertyPage';
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/real-estate-agents-kigali" element={<RealEstateAgentsKigali />} />
               <Route path="/houses-for-rent-kacyiru" element={<HousesForRentKacyiru />} />
               <Route path="/houses-for-rent-kimihurura" element={<HousesForRentKimihurura />} />
+              <Route path="/property/:slug" element={<PropertyPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

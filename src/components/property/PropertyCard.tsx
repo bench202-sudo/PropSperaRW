@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Property } from '@/types';
 import { formatPrice } from '@/data/mockData';
 import { HeartIcon, MapPinIcon, BedIcon, BathIcon, AreaIcon, PlotSizeIcon, CheckCircleIcon, ClockIcon, EyeIcon, ColumnsIcon, StarIcon } from '@/components/icons/Icons';
 import { PropertyRating } from '@/hooks/useReviews';
 import { useLanguage } from '@/contexts/AuthContext';
+import { generatePropertySlug } from '@/utils/seo';
  
 // Currency-aware price formatter
 export const formatPropertyPrice = (price: number, currency?: string): string => {
@@ -48,10 +50,21 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   };
  
   const compareDisabled = !isInCompare && compareCount >= 3;
- 
+  const slug = generatePropertySlug(property);
+
   return (
-    <div onClick={() => onSelect(property)}
-      className={`bg-white rounded-xl shadow-sm border overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group ${isInCompare ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-gray-100'}`}>
+    <Link
+      to={`/property/${slug}`}
+      onClick={(e) => {
+        // Let middle-click and ctrl/cmd+click open in new tab naturally.
+        // Regular left-clicks: call onSelect (opens modal) and stay on page.
+        if (!e.ctrlKey && !e.metaKey && e.button === 0) {
+          e.preventDefault();
+          onSelect(property);
+        }
+      }}
+      className={`bg-white rounded-xl shadow-sm border overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group block ${isInCompare ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-gray-100'}`}
+    >
       <div className="relative aspect-[4/3] overflow-hidden">
         <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -147,7 +160,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
  
