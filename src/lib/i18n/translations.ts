@@ -536,6 +536,16 @@ const translations = {
     saveChanges: 'Save Changes', savingChanges: 'Saving Changes...',
     rwfCurrencyHint: 'Rwandan Franc — shown as RWF on listing',
     usdCurrencyHint: 'US Dollar — shown as $ on listing',
+    // ─── Share / Social ───────────────────────────────────────────────────────
+    shareThisProperty: 'Share this property',
+    shareOnWhatsApp: 'Share on WhatsApp',
+    copyLink: 'Copy link',
+    copied: 'Copied!',
+    copyFailed: 'Failed',
+    moreShareOptions: 'More sharing options',
+    linkCopied: 'Link copied!',
+    clipboardNotSupported: 'Clipboard not supported',
+    shareMessageIntro: 'Check out this property on PropSpera:',
   },
   fr: {
     // Common
@@ -1070,6 +1080,16 @@ const translations = {
     saveChanges: 'Enregistrer les modifications', savingChanges: 'Enregistrement...',
     rwfCurrencyHint: 'Franc rwandais — affiché en RWF sur l’annonce',
     usdCurrencyHint: 'Dollar américain — affiché en $ sur l’annonce',
+    // ─── Share / Social ───────────────────────────────────────────────────────
+    shareThisProperty: 'Partager ce bien',
+    shareOnWhatsApp: 'Partager sur WhatsApp',
+    copyLink: 'Copier le lien',
+    copied: 'Copié !',
+    copyFailed: 'Échec',
+    moreShareOptions: "Plus d'options de partage",
+    linkCopied: 'Lien copié !',
+    clipboardNotSupported: 'Presse-papiers non pris en charge',
+    shareMessageIntro: 'Découvrez ce bien sur PropSpera :',
   },
   rw: {
     // Common
@@ -1570,6 +1590,16 @@ const translations = {
     saveChanges: 'Bika Impinduka', savingChanges: 'Bika Impinduka...',
     rwfCurrencyHint: "Ifaranga ry'u Rwanda — ryerekanywa nka RWF ku itangazo",
     usdCurrencyHint: "Dora y'Amerika — yerekanywa nka $ ku itangazo",
+    // ─── Share / Social ───────────────────────────────────────────────────────
+    shareThisProperty: 'Sangira uyu mutungo',
+    shareOnWhatsApp: 'Sangira kuri WhatsApp',
+    copyLink: 'Kopi link',
+    copied: 'Yakopiriwe!',
+    copyFailed: 'Byananiye',
+    moreShareOptions: 'Ibindi byo gusangira',
+    linkCopied: 'Link yakopiriwe!',
+    clipboardNotSupported: 'Clipboard ntishoboka',
+    shareMessageIntro: 'Reba uyu mutungo kuri PropSpera:',
   },
 } as const;
 

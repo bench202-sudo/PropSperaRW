@@ -96,7 +96,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
     const priceLabel = property.listing_type === 'rent' ? `${price}/month` : price;
     const location = property.address || `${property.neighborhood}, ${property.location}`;
     return [
-      `Check out this property on PropSpera:`,
+      `${t('shareMessageIntro')}`,
       ``,
       `🏠 *${property.title}*`,
       `📍 ${location}`,
@@ -316,7 +316,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
           )}
           {/* ── Share this property ─────────────────────────────────────── */}
           <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Share this property</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('shareThisProperty')}</p>
             <div className="flex items-center gap-2">
               {/* WhatsApp share */}
               <button
@@ -345,14 +345,14 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Copied!
+                    {t('copied')}
                   </>
                 ) : copyStatus === 'error' ? (
                   <>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                     </svg>
-                    Failed
+                    {t('copyFailed')}
                   </>
                 ) : (
                   <>
@@ -360,7 +360,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
                       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                     </svg>
-                    Copy link
+                    {t('copyLink')}
                   </>
                 )}
               </button>
@@ -369,8 +369,8 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
               {'share' in navigator && (
                 <button
                   onClick={handleNativeShare}
-                  title="More sharing options"
-                  aria-label="More sharing options"
+                  title={t('moreShareOptions')}
+                  aria-label={t('moreShareOptions')}
                   className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-colors border border-gray-200 shrink-0"
                 >
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

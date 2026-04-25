@@ -327,7 +327,7 @@ const PropertyPage: React.FC = () => {
     const location =
       property.address || [property.neighborhood, property.location].filter(Boolean).join(', ');
     return [
-      `Check out this property on PropSpera:`,
+      `${t('shareMessageIntro')}`,
       ``,
       `\uD83C\uDFE0 *${property.title}*`,
       `\uD83D\uDCCD ${location}`,
@@ -427,8 +427,8 @@ const PropertyPage: React.FC = () => {
             {/* WhatsApp share */}
             <button
               onClick={handleShareWhatsApp}
-              title="Share on WhatsApp"
-              aria-label="Share on WhatsApp"
+              title={t('shareOnWhatsApp')}
+              aria-label={t('shareOnWhatsApp')}
               className="w-9 h-9 flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50 active:bg-emerald-100 transition-colors"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -439,8 +439,8 @@ const PropertyPage: React.FC = () => {
             {/* Copy link */}
             <button
               onClick={handleCopyLink}
-              title="Copy link"
-              aria-label="Copy link"
+              title={t('copyLink')}
+              aria-label={t('copyLink')}
               className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors"
             >
               {copyStatus === 'copied' ? (
@@ -490,14 +490,14 @@ const PropertyPage: React.FC = () => {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Link copied!
+              {t('linkCopied')}
             </>
           ) : (
             <>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-              Clipboard not supported
+              {t('clipboardNotSupported')}
             </>
           )}
         </div>
@@ -734,7 +734,7 @@ const PropertyPage: React.FC = () => {
 
         {/* Share this property */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Share this property</p>
+          <p className="text-sm font-semibold text-gray-700 mb-3">{t('shareThisProperty')}</p>
           <div className="flex items-center gap-3">
             {/* WhatsApp */}
             <button
@@ -763,14 +763,14 @@ const PropertyPage: React.FC = () => {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  Copied!
+                  {t('copied')}
                 </>
               ) : copyStatus === 'error' ? (
                 <>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  Failed
+                  {t('copyFailed')}
                 </>
               ) : (
                 <>
@@ -778,7 +778,7 @@ const PropertyPage: React.FC = () => {
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                   </svg>
-                  Copy link
+                  {t('copyLink')}
                 </>
               )}
             </button>
@@ -787,8 +787,8 @@ const PropertyPage: React.FC = () => {
             {'share' in navigator && (
               <button
                 onClick={handleNativeShare}
-                title="More sharing options"
-                aria-label="More sharing options"
+                title={t('moreShareOptions')}
+                aria-label={t('moreShareOptions')}
                 className="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-600 transition-colors shadow-sm border border-gray-200 shrink-0"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
