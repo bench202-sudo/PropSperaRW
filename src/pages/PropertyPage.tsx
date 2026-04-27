@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 import SuccessModal from '@/components/SuccessModal';
+import { logWhatsAppClick } from '@/lib/supabase';
 
 // ── Helper: format date ───────────────────────────────────────────────────────
 function formatDate(dateStr: string): string {
@@ -818,6 +819,7 @@ const PropertyPage: React.FC = () => {
               href={`https://wa.me/${getWhatsAppNumber(property.agent.user.phone)}?text=${encodeURIComponent(getWhatsAppMessage())}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => logWhatsAppClick(property.id, property.title, property.agent?.id ?? null)}
               className="w-14 h-14 bg-emerald-600 text-white rounded-xl flex items-center justify-center hover:bg-emerald-700 transition-colors shadow-md"
               title="WhatsApp"
             >

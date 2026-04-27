@@ -54,3 +54,32 @@ const supabasePublic = createClient(supabaseUrl, supabaseKey, {
 });
 
 export { supabase, supabasePublic };
+
+// ── WhatsApp click tracker ──────────────────────────────────────────────────
+// Call this before opening a wa.me link. Fires-and-forgets — never blocks the
+// redirect and never throws to the caller.
+export async function logWhatsAppClick(
+  propertyId: string,
+  propertyTitle: string,
+  agentId?: string | null
+): Promise<void> {
+  try {
+    // Use a short-lived session ID stored in sessionStorage as an anonymous
+    // user identifier so repeat clicks from the same session are visible.
+    let userIdentifier = sessionStorage.getItem('ps_session_id');
+    if (!userIdentifier) {
+      userIdentifier = crypto.randomUUID();
+      sessionStorage.setItem('ps_session_id', userIdentifier);
+    }
+
+    await supabasePublic.from('whatsapp_clicks').insert({
+      property_id: propertyId,
+      property_title: propertyTitle,
+      agent_id: agentId ?? null,
+      user_identifier: userIdentifier,
+      source: 'web',
+    });
+  } catch {
+    // Silently fail — tracking must never interrupt the user flow
+  }
+}
