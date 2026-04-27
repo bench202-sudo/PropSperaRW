@@ -583,7 +583,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                         {isExpanded ? 'Hide' : 'View'}
                       </button>
                     </div>
-                    <p className="text-sm font-medium text-blue-600 mt-0.5">{formatPrice(property.price)}</p>
+                    <p className="text-sm font-medium text-blue-600 mt-0.5">{formatPrice(property.price, property.currency || 'RWF')}</p>
                     <p className="text-xs text-gray-500 mt-1">{property.neighborhood} · {property.property_type} · {property.listing_type}</p>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       {property.status === 'pending' ? (
@@ -636,7 +636,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     <div>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('propertyDetails')}</p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><p className="text-xs text-gray-400">Price</p><p className="text-gray-900 font-semibold text-blue-600">{formatPrice(property.price)}</p></div>
+                        <div><p className="text-xs text-gray-400">Price</p><p className="text-gray-900 font-semibold text-blue-600">{formatPrice(property.price, property.currency || 'RWF')}</p></div>
                         <div><p className="text-xs text-gray-400">Type</p><p className="text-gray-900 font-medium capitalize">{property.property_type} · {property.listing_type}</p></div>
                         {property.bedrooms && <div><p className="text-xs text-gray-400">Bedrooms</p><p className="text-gray-900 font-medium">{property.bedrooms}</p></div>}
                         {property.bathrooms && <div><p className="text-xs text-gray-400">Bathrooms</p><p className="text-gray-900 font-medium">{property.bathrooms}</p></div>}
