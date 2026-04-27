@@ -47,7 +47,8 @@ const AdminWhatsAppDashboard: React.FC = () => {
         .order('clicked_at', { ascending: false });
 
       if (fetchError) {
-        setError('Failed to load WhatsApp click data.');
+        // Surface the actual Supabase error (e.g. "relation does not exist" means migration not yet run)
+        setError(`Failed to load WhatsApp click data: ${fetchError.message}`);
       } else {
         setClicks(data ?? []);
       }
