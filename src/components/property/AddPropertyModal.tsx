@@ -66,26 +66,52 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
  
   useEffect(() => {
     const fetchAgentId = async () => {
-      if (!appUser?.id) return;
+      // Imported users may have appUser.id = OLD UUID while agents.user_id
+      // has already been updated to auth.uid() (NEW UUID). Try both lookups.
+      const lookupIds = [
+        appUser?.id,          // app-level users.id
+        user?.id,             // auth.uid() — the source of truth after migration
+      ].filter((id): id is string => Boolean(id));
+
+      if (lookupIds.length === 0) {
+        setError('Your account could not be verified. Please sign out and sign in again.');
+        return;
+      }
+
       try {
-        const { data, error } = await supabase
-          .from('agents')
-          .select('id, verification_status')
-          .eq('user_id', appUser.id)
-          .single();
-        if (error) { setError('Could not verify your account. Please try again.'); return; }
+        let agentData: { id: string; verification_status: string } | null = null;
+
+        for (const lookupId of lookupIds) {
+          const { data, error } = await supabase
+            .from('agents')
+            .select('id, verification_status')
+            .eq('user_id', lookupId)
+            .maybeSingle();           // maybeSingle: no error when 0 rows
+          if (!error && data) {
+            agentData = data;
+            break;
+          }
+        }
+
+        if (!agentData) {
+          console.error('[AddProperty] No agent record found for user ids:', lookupIds);
+          setError('Could not verify your agent account. Please contact support.');
+          return;
+        }
+
         // Homeowners are auto-approved; agents require admin approval
-        if (appUser.role !== 'homeowner' && data.verification_status !== 'approved') {
+        if ((appUser?.role ?? 'agent') !== 'homeowner' && agentData.verification_status !== 'approved') {
           setError('Your agent account is not yet approved. Please wait for admin approval before adding properties.');
           return;
         }
-        setAgentId(data.id);
+        setAgentId(agentData.id);
       } catch (err) {
-        setError('An unexpected error occurred.');
+        console.error('[AddProperty] Unexpected error in fetchAgentId:', err);
+        setError('An unexpected error occurred while verifying your account.');
       }
     };
     fetchAgentId();
-  }, [appUser]);
+  }, [appUser, user]);
  
   // When property type changes to land, force listing_type to 'sale'
   // and clear land-irrelevant fields
@@ -262,37 +288,46 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
       return;
     }
     setValidationBanner(false);
-    if (!agentId) { setError('Agent verification required.'); return; }
+    if (!agentId) { setError('Agent verification required. Please refresh the page and try again.'); return; }
     setIsSubmitting(true);
     setError(null);
     try {
       const [imageUrls, videoUrl] = await Promise.all([uploadImages(), uploadVideo()]);
-      const { error: insertError } = await supabase.from('properties').insert({
-        agent_id: agentId,
-        title: formData.title.trim(),
-        description: formData.description.trim() || null,
-        property_type: formData.property_type,
-        listing_type: formData.listing_type,
-        price: parseFloat(formData.price),
-        currency: 'RWF',
-        bedrooms: !isLand && formData.bedrooms ? parseInt(formData.bedrooms) : null,
-        bathrooms: !isLand && formData.bathrooms ? parseInt(formData.bathrooms) : null,
-        area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
-        built_area: !isLand && formData.built_area ? parseFloat(formData.built_area) : null,
-        location: 'Kigali, Rwanda',
-        neighborhood: formData.neighborhood,
-        address: formData.address.trim() || null,
-        latitude: formData.latitude || null,
-        longitude: formData.longitude || null,
-        images: imageUrls,
-        video_url: videoUrl,
-        amenities: isLand ? [] : formData.amenities,
-        furnished: !isLand && formData.listing_type === 'rent' && formData.furnished ? formData.furnished : null,
-        status: 'pending',
-        featured: false,
-        views: 0
+
+      // Use SECURITY DEFINER RPC to bypass RLS policy mismatches that affect
+      // imported (migrated) users whose agents.user_id may not yet equal auth.uid().
+      const { data: newPropertyId, error: rpcError } = await supabase.rpc('submit_property', {
+        p_agent_id:       agentId,
+        p_title:          formData.title.trim(),
+        p_description:    formData.description.trim() || null,
+        p_property_type:  formData.property_type,
+        p_listing_type:   formData.listing_type,
+        p_price:          parseFloat(formData.price),
+        p_currency:       'RWF',
+        p_bedrooms:       (!isLand && formData.bedrooms) ? parseInt(formData.bedrooms) : null,
+        p_bathrooms:      (!isLand && formData.bathrooms) ? parseInt(formData.bathrooms) : null,
+        p_area_sqm:       formData.area_sqm ? parseFloat(formData.area_sqm) : null,
+        p_built_area:     (!isLand && formData.built_area) ? parseFloat(formData.built_area) : null,
+        p_location:       'Kigali, Rwanda',
+        p_neighborhood:   formData.neighborhood,
+        p_address:        formData.address.trim() || null,
+        p_latitude:       formData.latitude ?? null,
+        p_longitude:      formData.longitude ?? null,
+        p_images:         imageUrls,
+        p_video_url:      videoUrl ?? null,
+        p_amenities:      isLand ? [] : formData.amenities,
+        p_furnished:      (!isLand && formData.listing_type === 'rent' && formData.furnished) ? formData.furnished : null,
       });
-      if (insertError) throw new Error(`Failed to create property: ${insertError.message}`);
+
+      if (rpcError) {
+        console.error('[AddProperty] submit_property RPC error:', rpcError);
+        throw new Error(`Failed to create property: ${rpcError.message}`);
+      }
+      if (!newPropertyId) {
+        console.error('[AddProperty] submit_property returned no id — possible RLS or data issue');
+        throw new Error('Property was not created. Please try again or contact support.');
+      }
+
       // Notify admin of the new submission (non-blocking)
       try {
         await supabase.from('admin_notifications').insert({
@@ -303,10 +338,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
           is_read: false,
         });
       } catch (notifErr) {
-        console.warn('Could not create admin notification:', notifErr);
+        console.warn('[AddProperty] Could not create admin notification:', notifErr);
       }
       onSuccess();
     } catch (err: any) {
+      console.error('[AddProperty] handleSubmit error:', err);
       setError(err.message || 'Failed to submit property. Please try again.');
     } finally {
       setIsSubmitting(false);
