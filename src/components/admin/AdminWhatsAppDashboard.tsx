@@ -26,6 +26,7 @@ const PAGE_SIZE = 10;
 
 const AdminWhatsAppDashboard: React.FC = () => {
   const [clicks, setClicks] = useState<WhatsAppClick[]>([]);
+  const [agentNames, setAgentNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,8 +50,27 @@ const AdminWhatsAppDashboard: React.FC = () => {
       if (fetchError) {
         // Surface the actual Supabase error (e.g. "relation does not exist" means migration not yet run)
         setError(`Failed to load WhatsApp click data: ${fetchError.message}`);
-      } else {
-        setClicks(data ?? []);
+        return;
+      }
+
+      const rows = data ?? [];
+      setClicks(rows);
+
+      // Resolve agent names for all unique agent IDs in this result set
+      const uniqueAgentIds = [...new Set(rows.map((r) => r.agent_id).filter(Boolean))] as string[];
+      if (uniqueAgentIds.length > 0) {
+        const { data: agentData } = await supabase
+          .from('agents')
+          .select('id, user:user_id(full_name)')
+          .in('id', uniqueAgentIds);
+
+        if (agentData) {
+          const nameMap: Record<string, string> = {};
+          agentData.forEach((a: any) => {
+            nameMap[a.id] = a.user?.full_name ?? a.id;
+          });
+          setAgentNames(nameMap);
+        }
       }
     } catch {
       setError('An unexpected error occurred.');
@@ -159,11 +179,12 @@ const AdminWhatsAppDashboard: React.FC = () => {
   };
 
   const handleExportCSV = () => {
-    const headers = ['Date / Time', 'Property Title', 'Property ID', 'Agent ID', 'Session ID', 'Source'];
+    const headers = ['Date / Time', 'Property Title', 'Property ID', 'Agent Name', 'Agent ID', 'Session ID', 'Source'];
     const rows = filtered.map((c) => [
       c.clicked_at ? new Date(c.clicked_at).toLocaleString() : '',
       c.property_title ?? '',
       c.property_id,
+      c.agent_id ? (agentNames[c.agent_id] ?? c.agent_id) : '',
       c.agent_id ?? '',
       c.user_identifier ?? '',
       c.source ?? 'web',
@@ -245,7 +266,7 @@ const AdminWhatsAppDashboard: React.FC = () => {
           <SearchIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search property or agent ID…"
+            placeholder="Search property or agent…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -301,7 +322,7 @@ const AdminWhatsAppDashboard: React.FC = () => {
                     Property <SortIcon field="property_title" />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    Agent ID
+                    Agent
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Session
@@ -334,10 +355,12 @@ const AdminWhatsAppDashboard: React.FC = () => {
                         )}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs font-mono">
+                    <td className="px-4 py-3">
                       {click.agent_id ? (
-                        <span className="truncate block max-w-[120px]" title={click.agent_id}>
-                          {click.agent_id.slice(0, 8)}…
+                        <span className="text-gray-800 font-medium" title={click.agent_id}>
+                          {agentNames[click.agent_id] ?? (
+                            <span className="text-gray-400 font-mono text-xs">{click.agent_id.slice(0, 8)}…</span>
+                          )}
                         </span>
                       ) : (
                         <span className="text-gray-300">—</span>
