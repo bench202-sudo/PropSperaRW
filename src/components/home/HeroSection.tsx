@@ -14,7 +14,7 @@ const formatCount = (count: number): string => {
   if (count >= 200) return '200+';
   if (count >= 100) return '100+';
   if (count >= 50) return '50+';
-  if (count >= 20) return '20+';
+  if (count >= 30) return '30+';
   if (count >= 10) return '10+';
   return count.toString();
 };
