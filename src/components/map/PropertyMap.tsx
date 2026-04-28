@@ -80,9 +80,26 @@ function makePriceEl(property: Property, variant: MarkerVariant): HTMLElement {
   const fs     = variant === 'selected' ? '12px' : '11px';
 
   const el = document.createElement('div');
-  el.style.cssText = 'cursor:pointer;';
-  el.innerHTML = `<div style="display:inline-flex;align-items:center;justify-content:center;background:${bg};color:${fg};border:2px solid ${color};border-radius:16px;padding:5px 10px;white-space:nowrap;font-size:${fs};font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:${shadow};cursor:pointer;transform:translate(-50%,-110%) ${scale};transition:box-shadow 0.15s,transform 0.15s;position:relative;">${label}<div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${color};"></div></div>`;
+  // iOS Safari: cursor:pointer + user-select:none makes divs tappable and prevents text-selection glitch
+  el.style.cssText = 'cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;pointer-events:auto;-webkit-tap-highlight-color:transparent;';
+  el.innerHTML = `<div style="display:inline-flex;align-items:center;justify-content:center;background:${bg};color:${fg};border:2px solid ${color};border-radius:16px;padding:5px 10px;white-space:nowrap;font-size:${fs};font-weight:700;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:${shadow};cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translate(-50%,-110%) ${scale};transition:box-shadow 0.15s,transform 0.15s;position:relative;">${label}<div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${color};"></div></div>`;
   return el;
+}
+
+// ─── Kigali address normalizer ───────────────────────────────────────────────
+
+function normalizeKigaliAddress(address: string): string {
+  let s = address.trim();
+  // Uppercase Kigali road prefixes (KG, KK, KN)
+  s = s.replace(/\b(kg|kk|kn)\b/gi, (m) => m.toUpperCase());
+  // Ensure space between prefix and number: KG360 → KG 360
+  s = s.replace(/\b(KG|KK|KN)(\d)/g, '$1 $2');
+  // Expand common abbreviations
+  s = s.replace(/\bStr\b/gi, 'Street');
+  s = s.replace(/\bAve\b/gi, 'Avenue');
+  s = s.replace(/\bRd\b/gi, 'Road');
+  s = s.replace(/\bBlvd\b/gi, 'Boulevard');
+  return s;
 }
 
 // ─── Geocoding cache ──────────────────────────────────────────────────────────
@@ -90,9 +107,10 @@ function makePriceEl(property: Property, variant: MarkerVariant): HTMLElement {
 const geocodeCache = new Map<string, [number, number] | null>();
 
 async function geocodeAddress(address: string, neighborhood?: string): Promise<[number, number] | null> {
+  const normalized = normalizeKigaliAddress(address);
   const query = neighborhood
-    ? `${address}, ${neighborhood}, Kigali, Rwanda`
-    : `${address}, Kigali, Rwanda`;
+    ? `${normalized}, ${neighborhood}, Kigali, Rwanda`
+    : `${normalized}, Kigali, Rwanda`;
 
   if (geocodeCache.has(query)) return geocodeCache.get(query)!;
 
@@ -214,8 +232,19 @@ const PropertyMap: React.FC<PropertyMapProps> = ({
           .setLngLat([lng, lat])
           .addTo(map);
 
+        // iOS Safari: touchend fires reliably; preventDefault() suppresses the
+        // subsequent synthetic click so the map's click→deselect handler won't run.
+        el.addEventListener('touchend', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          setSelectedPin(property);
+          map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 15), duration: 600 });
+        }, { passive: false });
+
+        // Desktop click handler (touchend's preventDefault suppresses this on mobile)
         el.addEventListener('click', (e) => {
           e.stopPropagation();
+          e.preventDefault();
           setSelectedPin(property);
           map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 15), duration: 600 });
         });
