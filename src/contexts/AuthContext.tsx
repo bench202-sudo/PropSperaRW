@@ -309,30 +309,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (!profileErr && profile === null) {
           // No row matched by auth_id.
-          // This happens for pre-migration users whose public.users.auth_id was
-          // never set (Famous.ai → Supabase migration gap).  Fall back to an
-          // email-based lookup before deciding the account doesn't exist.
-          const { data: emailProfile } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', data.user.email ?? '')
-            .maybeSingle();
-
-          if (!emailProfile) {
-            // Truly no PropSpera account — reject.
-            await supabase.auth.signOut();
-            return {
-              error: new Error(
-                'No PropSpera account found for this email. Please sign up first.'
-              ),
-            };
-          }
-
-          // Profile found by email → pre-migration user.
-          // Link auth_id now via the SECURITY DEFINER RPC so that
-          // fetchAppUser(auth.uid()) succeeds in the SIGNED_IN handler.
-          // Fire-and-forget: the onAuthStateChange handler will also call
-          // ensure_user_profile as a safety net.
+          // Could be a pre-migration user (auth_id still NULL or RLS blocked
+          // the read).  Do NOT call signOut() here — that would create a race
+          // condition with the concurrent onAuthStateChange('SIGNED_IN') handler
+          // and wipe the session from localStorage, causing refresh = logged out.
+          //
+          // Instead, call ensure_user_profile (SECURITY DEFINER, bypasses RLS)
+          // which will link or create the public.users row.  The onAuthStateChange
+          // handler runs the same RPC as a safety net.
           supabase.rpc('ensure_user_profile').then(({ error: linkErr }) => {
             if (linkErr) console.warn('[Auth] signIn ensure_user_profile:', linkErr.message);
           });
