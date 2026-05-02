@@ -199,6 +199,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   'Please try again or sign in with email and password.'
                 );
               }
+            } else if (!isOAuth && mounted) {
+              // Email/password user with no linked profile.
+              // Pre-migration scenario: the user exists in public.users by email
+              // but their auth_id was never set (Famous.ai → Supabase migration).
+              // The SECURITY DEFINER RPC links auth_id and returns the row.
+              try {
+                const { data: linkedProfile, error: linkErr } = await supabase
+                  .rpc('ensure_user_profile');
+                if (!linkErr && linkedProfile && mounted) {
+                  setAppUser(linkedProfile as AppUser);
+                } else if (linkErr) {
+                  console.warn('[Auth] ensure_user_profile failed:', linkErr.message);
+                }
+              } catch (err) {
+                console.warn('[Auth] ensure_user_profile threw:', err);
+              }
             }
           }
         } catch (err) {
@@ -282,26 +298,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
-      // Check whether this auth account has a PropSpera profile.
-      // Use a direct DB query (not fetchAppUser) so we can distinguish
-      // "no rows" from a transient fetch error.
+
       if (data.user) {
+        // Check whether this auth account has a PropSpera profile linked by auth_id.
         const { data: profile, error: profileErr } = await supabase
           .from('users')
           .select('id')
           .eq('auth_id', data.user.id)
           .maybeSingle();
+
         if (!profileErr && profile === null) {
-          // Confirmed: row does not exist — not a PropSpera account
-          await supabase.auth.signOut();
-          return {
-            error: new Error(
-              'No PropSpera account found for this email. Please sign up first.'
-            ),
-          };
+          // No row matched by auth_id.
+          // This happens for pre-migration users whose public.users.auth_id was
+          // never set (Famous.ai → Supabase migration gap).  Fall back to an
+          // email-based lookup before deciding the account doesn't exist.
+          const { data: emailProfile } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', data.user.email ?? '')
+            .maybeSingle();
+
+          if (!emailProfile) {
+            // Truly no PropSpera account — reject.
+            await supabase.auth.signOut();
+            return {
+              error: new Error(
+                'No PropSpera account found for this email. Please sign up first.'
+              ),
+            };
+          }
+
+          // Profile found by email → pre-migration user.
+          // Link auth_id now via the SECURITY DEFINER RPC so that
+          // fetchAppUser(auth.uid()) succeeds in the SIGNED_IN handler.
+          // Fire-and-forget: the onAuthStateChange handler will also call
+          // ensure_user_profile as a safety net.
+          supabase.rpc('ensure_user_profile').then(({ error: linkErr }) => {
+            if (linkErr) console.warn('[Auth] signIn ensure_user_profile:', linkErr.message);
+          });
         }
         // If profileErr is set (network/timeout), allow sign-in anyway —
-        // onAuthStateChange will load the profile once the session settles.
+        // onAuthStateChange will load (and provision if needed) the profile.
       }
       return { error: null };
     } catch (error) {
