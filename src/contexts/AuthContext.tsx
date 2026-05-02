@@ -118,8 +118,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
   useEffect(() => {
     // ── Detect OAuth errors in the URL (query params or hash) ─────────────
-    // Supabase redirects back to our app with ?error=... or #error=... when
-    // the OAuth callback fails (e.g. email conflict, provider error, etc.).
     const detectUrlOAuthError = () => {
       const search = new URLSearchParams(window.location.search);
       const hash   = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -135,17 +133,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           'user_banned':          'This account has been suspended.',
           'over_email_send_rate_limit': 'Too many attempts. Please wait a few minutes and try again.',
         };
-        // For server_error and unknowns, show the raw description so we can diagnose
         const msg = friendlyMsg[errCode] ?? (rawDesc || `Sign-in error (${errCode}). Check browser console for details.`);
         setOauthError(msg);
-        // Clean up the URL so the error doesn't persist on refresh
-        const clean = window.location.pathname;
-        window.history.replaceState({}, '', clean);
+        window.history.replaceState({}, '', window.location.pathname);
       }
     };
     detectUrlOAuthError();
     let mounted = true;
- 
+
     const safetyTimeout = setTimeout(() => {
       if (mounted && !initialLoadDone.current) {
         console.warn('Auth initialization safety timeout reached');
@@ -153,14 +148,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     }, 8000);
- 
+
+    // ── Helper: load the public.users profile and link it if missing ─────────
+    // Called AFTER the UI is already unblocked, so slowness here only affects
+    // profile-dependent UI (agent dashboard etc.), never the loading spinner.
+    const loadAndSetProfile = async (authUser: SupabaseUser) => {
+      const profile = await fetchAppUser(authUser.id);
+      if (!mounted) return;
+      if (profile) {
+        setAppUser(profile);
+        return;
+      }
+      // Profile not found by auth_id — link/create via SECURITY DEFINER RPC.
+      const isOAuth = authUser.app_metadata?.provider !== 'email';
+      if (isOAuth) {
+        const provisionedProfile = await provisionOAuthUser(authUser.id);
+        if (mounted && provisionedProfile) {
+          setAppUser(provisionedProfile);
+        } else if (mounted) {
+          await supabase.auth.signOut();
+          setOauthError(
+            'Google sign-in failed: we could not set up your account. ' +
+            'Please try again or sign in with email and password.'
+          );
+        }
+      } else {
+        try {
+          const { data: linkedProfile, error: linkErr } = await supabase
+            .rpc('ensure_user_profile');
+          if (!linkErr && linkedProfile && mounted) {
+            setAppUser(linkedProfile as AppUser);
+          } else if (linkErr) {
+            console.warn('[Auth] ensure_user_profile failed:', linkErr.message);
+          }
+        } catch (err) {
+          console.warn('[Auth] ensure_user_profile threw:', err);
+        }
+      }
+    };
+
+    // ── Step 1: Restore session from localStorage — NO network call needed ────
+    // getSession() reads the stored token directly from localStorage.
+    // We use this to unblock the UI IMMEDIATELY on refresh, before any DB query
+    // runs. This is the root fix for "users appear logged out on refresh".
+    supabase.auth.getSession().then(({ data: { session: storedSession } }) => {
+      if (!mounted) return;
+      setSession(storedSession);
+      setUser(storedSession?.user ?? null);
+      // Unblock the loading spinner right away regardless of DB speed.
+      initialLoadDone.current = true;
+      setLoading(false);
+      // Load the public.users profile asynchronously — does not block rendering.
+      if (storedSession?.user) {
+        loadAndSetProfile(storedSession.user);
+      }
+    });
+
+    // ── Step 2: Subscribe to subsequent auth events (sign-in/out/refresh) ────
+    // INITIAL_SESSION is already handled above by getSession() — skip it here
+    // to avoid double-processing.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('🔐 Auth event:', event, '| Session:', newSession ? 'active' : 'null');
       if (!mounted) return;
- 
-      // When a password-reset link is clicked the user lands anywhere in the app
-      // (depending on Supabase Site URL config). Redirect them to /reset-password
-      // so they can set a new password regardless of which page they landed on.
+
+      // Already handled synchronously via getSession() above.
+      if (event === 'INITIAL_SESSION') return;
+
+      // When a password-reset link is clicked, redirect to /reset-password.
       if (event === 'PASSWORD_RECOVERY') {
         if (window.location.pathname !== '/reset-password') {
           window.location.href = '/reset-password';
@@ -168,68 +222,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
- 
       setSession(newSession);
       setUser(newSession?.user ?? null);
- 
+
       if (newSession?.user) {
         try {
+          // Brief delay on explicit sign-in to let Supabase finish writing.
           if (event === 'SIGNED_IN') {
             await new Promise(resolve => setTimeout(resolve, 800));
           }
           if (!mounted) return;
-          const profile = await fetchAppUser(newSession.user.id);
-          if (mounted && profile) {
-            setAppUser(profile);
-          } else if (!profile) {
-            const { user } = newSession;
-            const isOAuth = user.app_metadata?.provider !== 'email';
-            if (isOAuth && mounted) {
-              // OAuth user with no linked public.users row.
-              // Use service-role edge function + retry loop to handle the DB
-              // trigger that creates rows without auth_id (RLS blocks client updates).
-              const provisionedProfile = await provisionOAuthUser(user.id);
-              if (mounted && provisionedProfile) {
-                setAppUser(provisionedProfile);
-              } else if (mounted) {
-                // All retries exhausted — sign out and surface the error.
-                await supabase.auth.signOut();
-                setOauthError(
-                  'Google sign-in failed: we could not set up your account. ' +
-                  'Please try again or sign in with email and password.'
-                );
-              }
-            } else if (!isOAuth && mounted) {
-              // Email/password user with no linked profile.
-              // Pre-migration scenario: the user exists in public.users by email
-              // but their auth_id was never set (Famous.ai → Supabase migration).
-              // The SECURITY DEFINER RPC links auth_id and returns the row.
-              try {
-                const { data: linkedProfile, error: linkErr } = await supabase
-                  .rpc('ensure_user_profile');
-                if (!linkErr && linkedProfile && mounted) {
-                  setAppUser(linkedProfile as AppUser);
-                } else if (linkErr) {
-                  console.warn('[Auth] ensure_user_profile failed:', linkErr.message);
-                }
-              } catch (err) {
-                console.warn('[Auth] ensure_user_profile threw:', err);
-              }
-            }
-          }
+          await loadAndSetProfile(newSession.user);
         } catch (err) {
-          console.warn('Error fetching profile after auth change:', err);
+          console.warn('Error loading profile after auth event:', err);
         }
       } else {
         if (mounted) setAppUser(null);
       }
- 
-      if (mounted) {
-        initialLoadDone.current = true;
-        setLoading(false);
-      }
     });
- 
+
     return () => {
       mounted = false;
       clearTimeout(safetyTimeout);
