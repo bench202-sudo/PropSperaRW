@@ -7,8 +7,16 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
-// Wrap fetch with a 12-second timeout so slow auth token-refresh calls
-// never block supabase REST queries indefinitely.
+// Short-timeout fetch used ONLY for the auth-free public client.
+// Public queries are simple reads that should complete quickly. Applying a
+// timeout there is safe.
+//
+// ⚠️  DO NOT apply this (or any short timeout) to the authenticated `supabase`
+// client. That client routes ALL requests — including:
+//   • token-refresh calls made by autoRefreshToken on startup
+//   • storage.upload() for images / videos (can take minutes on slow connections)
+// through the same global fetch. A 12-second cap kills those operations,
+// causing "session lost on refresh" and "upload stuck forever" bugs.
 const fetchWithTimeout = (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), 12000);
@@ -24,6 +32,10 @@ const fetchWithTimeout = (url: RequestInfo | URL, init?: RequestInit): Promise<R
 };
 
 // Full auth client — used for authentication flows and user-specific queries.
+// No custom fetch here: token refreshes and file uploads must never be cut
+// short by an artificial timeout. UI-level timeouts are handled at the
+// call-site (withTimeout wrappers) and via the 8-second safetyTimeout in
+// AuthContext.
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
@@ -31,10 +43,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     storageKey: 'propspera-auth',
     storage: window.localStorage,
-    flowType: 'implicit',
-  },
-  global: {
-    fetch: fetchWithTimeout,
+    flowType: 'pkce',
   },
 });
 
