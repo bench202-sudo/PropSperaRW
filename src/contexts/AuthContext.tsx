@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const result = await withTimeout(
         supabase.from('users').select('*').eq('auth_id', authId).single(),
-        5000,
+        15000,
         { data: null, error: { message: 'Profile fetch timed out' } as any }
       );
       if (result.error) {
@@ -152,7 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // ── Helper: load the public.users profile and link it if missing ─────────
     // Called AFTER the UI is already unblocked, so slowness here only affects
     // profile-dependent UI (agent dashboard etc.), never the loading spinner.
-    const loadAndSetProfile = async (authUser: SupabaseUser) => {
+    // allowSignOut controls whether a failed OAuth provisioning destroys the
+    // session. It must only be true for an EXPLICIT sign-in (SIGNED_IN event).
+    // On page refresh (getSession() path or TOKEN_REFRESHED), the session is
+    // valid — a slow/failing DB call must never wipe it from localStorage.
+    const loadAndSetProfile = async (authUser: SupabaseUser, allowSignOut = false) => {
       const profile = await fetchAppUser(authUser.id);
       if (!mounted) return;
       if (profile) {
@@ -166,11 +170,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted && provisionedProfile) {
           setAppUser(provisionedProfile);
         } else if (mounted) {
-          await supabase.auth.signOut();
-          setOauthError(
-            'Google sign-in failed: we could not set up your account. ' +
-            'Please try again or sign in with email and password.'
-          );
+          if (allowSignOut) {
+            // Explicit sign-in: provisioning truly failed for a new user.
+            await supabase.auth.signOut();
+            setOauthError(
+              'Google sign-in failed: we could not set up your account. ' +
+              'Please try again or sign in with email and password.'
+            );
+          } else {
+            // Page refresh / token refresh: the session is valid but the DB is
+            // slow or the profile lookup timed out. Keep the session alive —
+            // appUser stays null until the next successful fetch.
+            console.warn('[Auth] OAuth profile load failed on restore — session kept alive, will retry on next auth event.');
+          }
         }
       } else {
         try {
@@ -222,6 +234,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // Token refresh is purely a credentials rotation — the user's identity and
+      // public.users profile are unchanged.  Avoid an unnecessary DB round-trip.
+      if (event === 'TOKEN_REFRESHED') {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        return;
+      }
+
+      // User metadata update (e.g. email change) — sync the Supabase user object
+      // but skip a full profile reload.
+      if (event === 'USER_UPDATED') {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        return;
+      }
+
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
@@ -232,7 +260,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await new Promise(resolve => setTimeout(resolve, 800));
           }
           if (!mounted) return;
-          await loadAndSetProfile(newSession.user);
+          // Only allow signOut when the user explicitly signed in (not on token
+          // refresh or other background events).
+          await loadAndSetProfile(newSession.user, event === 'SIGNED_IN');
         } catch (err) {
           console.warn('Error loading profile after auth event:', err);
         }
@@ -309,31 +339,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
-
+      // Profile provisioning is handled asynchronously by onAuthStateChange('SIGNED_IN').
+      // Do NOT make any blocking DB query here — it has no timeout and will cause
+      // the "Signing In..." spinner to hang indefinitely if the DB is slow.
+      // The ensure_user_profile RPC is called as a non-blocking safety net.
       if (data.user) {
-        // Check whether this auth account has a PropSpera profile linked by auth_id.
-        const { data: profile, error: profileErr } = await supabase
-          .from('users')
-          .select('id')
-          .eq('auth_id', data.user.id)
-          .maybeSingle();
-
-        if (!profileErr && profile === null) {
-          // No row matched by auth_id.
-          // Could be a pre-migration user (auth_id still NULL or RLS blocked
-          // the read).  Do NOT call signOut() here — that would create a race
-          // condition with the concurrent onAuthStateChange('SIGNED_IN') handler
-          // and wipe the session from localStorage, causing refresh = logged out.
-          //
-          // Instead, call ensure_user_profile (SECURITY DEFINER, bypasses RLS)
-          // which will link or create the public.users row.  The onAuthStateChange
-          // handler runs the same RPC as a safety net.
-          supabase.rpc('ensure_user_profile').then(({ error: linkErr }) => {
-            if (linkErr) console.warn('[Auth] signIn ensure_user_profile:', linkErr.message);
-          });
-        }
-        // If profileErr is set (network/timeout), allow sign-in anyway —
-        // onAuthStateChange will load (and provision if needed) the profile.
+        supabase.rpc('ensure_user_profile').catch((err: unknown) => {
+          console.warn('[Auth] signIn ensure_user_profile (fire-and-forget):', err);
+        });
       }
       return { error: null };
     } catch (error) {
@@ -360,7 +373,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
  
   const signOut = async () => {
-    try { await supabase.auth.signOut(); } catch (err) { console.warn('Error during sign out:', err); }
+    // Race the network call with a 5-second safety timeout so logout is never
+    // blocked indefinitely (e.g. when the session is already expired or the
+    // network is unavailable). State is always cleared regardless of outcome.
+    try {
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+      ]);
+    } catch (err) {
+      console.warn('Error during sign out:', err);
+    }
     setUser(null);
     setAppUser(null);
     setSession(null);

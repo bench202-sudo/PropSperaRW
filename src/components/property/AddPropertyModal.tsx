@@ -310,25 +310,12 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     setIsSubmitting(true);
     setError(null);
     try {
-      // ── Guard: ensure a valid session exists before starting uploads ──────
-      // The user may have been idle for a while. We force-refresh the token
-      // so the upload and RPC calls do not fail mid-way through authentication.
-      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
-      if (sessionErr || !sessionData.session) {
-        setError('Your session has expired. Please sign in again and try submitting.');
-        setIsSubmitting(false);
-        return;
-      }
-      // If the token expires within the next 5 minutes, refresh it now.
-      const expiresAt = sessionData.session.expires_at ?? 0;
-      if (expiresAt - Math.floor(Date.now() / 1000) < 300) {
-        const { error: refreshErr } = await supabase.auth.refreshSession();
-        if (refreshErr) {
-          console.warn('[AddProperty] Pre-upload token refresh failed:', refreshErr.message);
-          // Non-fatal — autoRefreshToken may still succeed during the request.
-        }
-      }
-
+      // autoRefreshToken: true keeps the token valid proactively. Do NOT call
+      // getSession() or refreshSession() here — both acquire an internal lock
+      // and will hang if autoRefreshToken has a concurrent refresh in-flight,
+      // which freezes the UI on "uploading & submitting". If the session IS
+      // genuinely expired, the upload call will fail with an auth error and the
+      // improved error handling below will surface a clear message.
       const [imageUrls, videoUrl] = await Promise.all([uploadImages(), uploadVideo()]);
 
       // Use SECURITY DEFINER RPC to bypass RLS policy mismatches that affect
