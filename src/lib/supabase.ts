@@ -43,7 +43,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     storageKey: 'propspera-auth',
     storage: window.localStorage,
-    flowType: 'pkce',
+    flowType: 'implicit',
   },
 });
 
