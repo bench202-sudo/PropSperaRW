@@ -337,17 +337,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Race the auth call against a 20-second timeout so the "Signing in…"
+      // button never hangs indefinitely on slow connections or cold starts.
+      const authPromise = supabase.auth.signInWithPassword({ email, password });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Sign in timed out. Please check your connection and try again.')), 20000)
+      );
+      const { data, error } = await Promise.race([authPromise, timeoutPromise]);
       if (error) return { error };
-      // Profile provisioning is handled asynchronously by onAuthStateChange('SIGNED_IN').
-      // Do NOT make any blocking DB query here — it has no timeout and will cause
-      // the "Signing In..." spinner to hang indefinitely if the DB is slow.
-      // The ensure_user_profile RPC is called as a non-blocking safety net.
-      if (data.user) {
-        supabase.rpc('ensure_user_profile').catch((err: unknown) => {
-          console.warn('[Auth] signIn ensure_user_profile (fire-and-forget):', err);
-        });
-      }
+      // Profile provisioning is handled asynchronously by onAuthStateChange('SIGNED_IN')
+      // via loadAndSetProfile → ensure_user_profile for email users. No extra call needed here.
       return { error: null };
     } catch (error) {
       return { error: error as Error };
