@@ -132,7 +132,7 @@ const SeoLandingPage: React.FC<SeoLandingPageProps> = ({
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/?view=search" className="text-sm text-gray-600 hover:text-blue-600 hidden sm:block font-medium">
-              Browse Listings
+              Browse All Listings
             </Link>
             <Link
               to="/?view=agents"
@@ -154,7 +154,7 @@ const SeoLandingPage: React.FC<SeoLandingPageProps> = ({
               to="/?view=search"
               className="px-8 py-3.5 bg-white text-blue-700 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-lg text-center"
             >
-              Browse Listings
+              Browse All Listings
             </Link>
             <Link
               to="/?view=agents"
@@ -245,7 +245,7 @@ const SeoLandingPage: React.FC<SeoLandingPageProps> = ({
               to="/?view=search"
               className="px-7 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-sm"
             >
-              Browse Listings
+              Browse All Listings
             </Link>
             <Link
               to="/?view=agents"

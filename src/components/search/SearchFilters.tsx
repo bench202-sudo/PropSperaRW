@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SearchFilters as SearchFiltersType } from '@/types';
 import { neighborhoods } from '@/data/mockData';
 import { SearchIcon, FilterIcon, XIcon, ChevronDownIcon } from '@/components/icons/Icons';
@@ -18,6 +18,10 @@ const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [localFilters, setLocalFilters] = useState<SearchFiltersType>(filters);
   const { t } = useLanguage();
+
+  useEffect(() => {
+    setLocalFilters(filters);
+  }, [filters]);
  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFilters = { ...filters, query: e.target.value };
@@ -38,6 +42,7 @@ const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
       query: '',
       property_type: 'all',
       listing_type: 'all',
+      sort_by: 'newest',
       bedrooms: 'any',
       neighborhood: '',
       verified_only: false
@@ -87,6 +92,22 @@ const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
             </span>
           )}
         </button>
+        <div className="relative w-44 hidden sm:block">
+          <select
+            value={filters.sort_by || 'newest'}
+            onChange={(e) => onFilterChange({
+              ...filters,
+              sort_by: e.target.value as SearchFiltersType['sort_by']
+            })}
+            className="appearance-none w-full px-4 py-3.5 pr-10 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+          >
+            <option value="newest">{t('newest')}</option>
+            <option value="most_viewed">{t('mostViewed')}</option>
+            <option value="price_low">{t('priceAsc')}</option>
+            <option value="price_high">{t('priceDesc')}</option>
+          </select>
+          <ChevronDownIcon size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </div>
       </div>
  
       {/* Quick Filter Chips */}
@@ -260,6 +281,24 @@ const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
                     onChange={(e) => handleLocalFilterChange('max_price', e.target.value ? Number(e.target.value) : undefined)}
                     className="py-3 px-4 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+              </div>
+
+              {/* Sort By */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-3">{t('sortBy')}</label>
+                <div className="relative">
+                  <select
+                    value={localFilters.sort_by || 'newest'}
+                    onChange={(e) => handleLocalFilterChange('sort_by', e.target.value as SearchFiltersType['sort_by'])}
+                    className="w-full py-3 px-4 bg-gray-100 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="newest">{t('newest')}</option>
+                    <option value="most_viewed">{t('mostViewed')}</option>
+                    <option value="price_low">{t('priceAsc')}</option>
+                    <option value="price_high">{t('priceDesc')}</option>
+                  </select>
+                  <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
               </div>
  

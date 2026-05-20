@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth, useLanguage } from '@/contexts/AuthContext';
-import { Property, PropertyType, ListingType, PropertyStatus } from '@/types';
+import { Property, PropertyType, ListingType } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
-import { XIcon, ImageIcon, ChevronDownIcon, CheckCircleIcon, AlertCircleIcon, TrashIcon } from '@/components/icons/Icons';
+import { XIcon, ImageIcon, ChevronDownIcon, AlertCircleIcon } from '@/components/icons/Icons';
 
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
 const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
@@ -12,6 +12,35 @@ interface EditPropertyModalProps {
   property: Property;
   onClose: () => void;
   onSuccess: () => void;
+}
+
+type FurnishedOption = 'furnished' | 'unfurnished' | '';
+type EditableProperty = Property & {
+  built_area?: number | null;
+  furnished?: Exclude<FurnishedOption, ''> | null;
+};
+
+interface EditFormData {
+  title: string;
+  description: string;
+  property_type: PropertyType;
+  listing_type: ListingType;
+  price: string;
+  currency: string;
+  bedrooms: string;
+  bathrooms: string;
+  area_sqm: string;
+  built_area: string;
+  furnished: FurnishedOption;
+  neighborhood: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  amenities: string[];
+  existingImages: string[];
+  newImages: File[];
+  existingVideoUrl: string | null;
+  newVideo: File | null;
 }
  
  
@@ -23,9 +52,10 @@ const CURRENCIES = [
 const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose, onSuccess }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const editableProperty = property as EditableProperty;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EditFormData>({
     title: property.title,
     description: property.description || '',
     property_type: property.property_type as PropertyType,
@@ -35,17 +65,17 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
     bedrooms: property.bedrooms?.toString() || '',
     bathrooms: property.bathrooms?.toString() || '',
     area_sqm: property.area_sqm?.toString() || '',
-    built_area: (property as any).built_area?.toString() || '',
-    furnished: (property as any).furnished || '' as 'furnished' | 'unfurnished' | '',
+    built_area: editableProperty.built_area?.toString() || '',
+    furnished: editableProperty.furnished || '',
     neighborhood: property.neighborhood || '',
     address: property.address || '',
-    latitude: (property as any).latitude || null as number | null,
-    longitude: (property as any).longitude || null as number | null,
+    latitude: property.latitude || null,
+    longitude: property.longitude || null,
     amenities: property.amenities || [],
     existingImages: property.images || [],
-    newImages: [] as File[],
-    existingVideoUrl: (property as any).video_url || null as string | null,
-    newVideo: null as File | null
+    newImages: [],
+    existingVideoUrl: property.video_url || null,
+    newVideo: null
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
@@ -55,7 +85,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeSuccess, setGeocodeSuccess] = useState(false);
   const [geocodeError, setGeocodeError] = useState(false);
-  const geocodeTimeout = useRef<any>(null);
+  const geocodeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
  
   const geocodeAddress = async (address: string) => {
     if (!address || address.length < 5) return;
@@ -82,7 +112,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
     setGeocoding(false);
   };
  
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof EditFormData>(field: K, value: EditFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
     if (field === 'address') {
@@ -203,7 +233,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
         finalVideoUrl = formData.existingVideoUrl;
       }
 
-      const { error: updateError } = await supabase.from('properties').update({
+      const updatePayload = {
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         property_type: formData.property_type,
@@ -223,7 +253,9 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
         amenities: formData.amenities,
         furnished: formData.listing_type === 'rent' && formData.furnished ? formData.furnished : null,
         updated_at: new Date().toISOString()
-      }).eq('id', property.id);
+      };
+
+      const { error: updateError } = await supabase.from('properties').update(updatePayload).eq('id', property.id);
       if (updateError) throw new Error(`Failed to update property: ${updateError.message}`);
 
       // Cleanup deleted images from storage
@@ -243,8 +275,9 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
       }
 
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'Failed to update property. Please try again.');
+    } catch (err: unknown) {
+      console.error('[EditProperty] Failed to update property:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update property. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -481,7 +514,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('neighborhoodReqLabel')}</label>
             <div className="relative">
-              <select value={formData.neighborhood} onChange={(e) => handleChange('neighborhood', e.target.value)}
+              <select value={formData.neighborhood} onChange={(e) => handleInputChange('neighborhood', e.target.value)}
                 className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.neighborhood ? 'ring-2 ring-red-500' : ''}`}>
                 <option value="">{t('selectOption')} {t('neighborhood').toLowerCase()}</option>
                 {neighborhoods.map((n) => <option key={n} value={n}>{n}</option>)}
@@ -534,7 +567,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('description')}</label>
-            <textarea value={formData.description} onChange={(e) => handleChange('description', e.target.value)}
+            <textarea value={formData.description} onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder={t('descriptionPlaceholder')} rows={3}
               className="w-full py-3 px-4 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
           </div>

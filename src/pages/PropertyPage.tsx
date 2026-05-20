@@ -171,15 +171,19 @@ const PropertyPage: React.FC = () => {
         created_at: propData.created_at,
       } as Property;
 
-      // Silently increment views
-      supabasePublic.rpc('increment_property_views', { property_id: id }).then(({ error: rpcErr }) => {
-        if (rpcErr) {
-          supabasePublic
-            .from('properties')
-            .update({ views: (propData.views || 0) + 1 })
-            .eq('id', id);
-        }
-      });
+      // Silently increment views once per browser session for this property
+      const viewedKey = `propspera:viewed:${id}`;
+      if (!sessionStorage.getItem(viewedKey)) {
+        supabasePublic.rpc('increment_property_views', { property_id: id }).then(({ error: rpcErr }) => {
+          if (rpcErr) {
+            supabasePublic
+              .from('properties')
+              .update({ views: (propData.views || 0) + 1 })
+              .eq('id', id);
+          }
+          sessionStorage.setItem(viewedKey, '1');
+        });
+      }
 
       setProperty(p);
       setLoading(false);

@@ -219,7 +219,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // ── Step 2: Subscribe to subsequent auth events (sign-in/out/refresh) ────
     // INITIAL_SESSION is already handled above by getSession() — skip it here
     // to avoid double-processing.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    //
+    // IMPORTANT: This callback is intentionally synchronous (no `async`).
+    // @supabase/auth-js v2 awaits all onAuthStateChange listeners before
+    // signInWithPassword() returns. An async listener that awaits fetchAppUser
+    // (15 s timeout) + ensure_user_profile RPC would block signIn() for 15-30 s,
+    // causing the "Still verifying…" and "Taking longer than usual…" messages.
+    // Profile loading is dispatched as a fire-and-forget background task so the
+    // auth call returns immediately once the session is set.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       console.log('🔐 Auth event:', event, '| Session:', newSession ? 'active' : 'null');
       if (!mounted) return;
 
@@ -254,18 +262,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(newSession?.user ?? null);
 
       if (newSession?.user) {
-        try {
-          // Brief delay on explicit sign-in to let Supabase finish writing.
-          if (event === 'SIGNED_IN') {
-            await new Promise(resolve => setTimeout(resolve, 800));
+        // Fire profile loading as a background task — never await inside this
+        // listener so signInWithPassword() returns without delay.
+        const capturedUser = newSession.user;
+        const capturedEvent = event;
+        void (async () => {
+          try {
+            // Brief delay on explicit sign-in to let Supabase finish writing.
+            if (capturedEvent === 'SIGNED_IN') {
+              await new Promise(resolve => setTimeout(resolve, 800));
+            }
+            if (!mounted) return;
+            // Only allow signOut when the user explicitly signed in (not on token
+            // refresh or other background events).
+            await loadAndSetProfile(capturedUser, capturedEvent === 'SIGNED_IN');
+          } catch (err) {
+            console.warn('Error loading profile after auth event:', err);
           }
-          if (!mounted) return;
-          // Only allow signOut when the user explicitly signed in (not on token
-          // refresh or other background events).
-          await loadAndSetProfile(newSession.user, event === 'SIGNED_IN');
-        } catch (err) {
-          console.warn('Error loading profile after auth event:', err);
-        }
+        })();
       } else {
         if (mounted) setAppUser(null);
       }
@@ -337,13 +351,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  
   const signIn = async (email: string, password: string) => {
     try {
-      // Race the auth call against a 20-second timeout so the "Signing in…"
-      // button never hangs indefinitely on slow connections or cold starts.
-      const authPromise = supabase.auth.signInWithPassword({ email, password });
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Sign in timed out. Please check your connection and try again.')), 20000)
-      );
-      const { data, error } = await Promise.race([authPromise, timeoutPromise]);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error };
       // Profile provisioning is handled asynchronously by onAuthStateChange('SIGNED_IN')
       // via loadAndSetProfile → ensure_user_profile for email users. No extra call needed here.

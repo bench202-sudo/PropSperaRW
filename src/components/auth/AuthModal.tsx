@@ -31,17 +31,34 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, initialView = 'login', a
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError ?? null);
   const [showPassword, setShowPassword] = useState(false);
- 
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
- 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    // At 12 s, show a reassuring note (common for imported/migrated accounts
+    // whose first sign-in triggers extra server-side provisioning).
+    // At 30 s, tell the user they can close the window and will be signed in
+    // automatically if GoTrue eventually succeeds (onAuthStateChange in
+    // AuthContext handles the session regardless of modal state).
+    // The spinner is intentionally kept active — the modal should only close
+    // via an explicit success result, never because of a background auth event.
+    const slowTimer = setTimeout(() => {
+      setError('Still verifying your account — please wait…');
+    }, 12000);
+    const verySlowTimer = setTimeout(() => {
+      setError('This is taking longer than usual. You may close this window — if sign‑in succeeds you will be logged in automatically. Otherwise try again in a moment.');
+    }, 30000);
+
     const { error } = await signIn(email, password);
+    clearTimeout(slowTimer);
+    clearTimeout(verySlowTimer);
     if (error) { setError(error.message); setLoading(false); return; }
     setLoading(false);
     onClose();

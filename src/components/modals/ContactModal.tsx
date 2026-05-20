@@ -23,12 +23,12 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
  
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Invalid email address';
-    if (!phone.trim()) newErrors.phone = 'Phone number is required';
-    else if (phone.trim().length < 7) newErrors.phone = 'Enter a valid phone number';
-    if (!message.trim()) newErrors.message = 'Message is required';
-    else if (message.trim().length < 10) newErrors.message = 'Message must be at least 10 characters';
+    if (!email.trim()) newErrors.email = t('contactEmailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = t('contactInvalidEmail');
+    if (!phone.trim()) newErrors.phone = t('contactPhoneRequired');
+    else if (phone.trim().length < 7) newErrors.phone = t('contactInvalidPhone');
+    if (!message.trim()) newErrors.message = t('contactMessageRequired');
+    else if (message.trim().length < 10) newErrors.message = t('contactMessageTooShort');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -49,7 +49,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
         .single();
  
       if (adminError || !adminUser) {
-        setError('Could not reach support. Please email hello@propspera.com directly.');
+        setError(t('contactSupportFallback'));
         setSubmitting(false);
         return;
       }
@@ -91,7 +91,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
       setSuccess(true);
     } catch (err: any) {
       console.error('Contact form error:', err);
-      setError('Failed to send message. Please try again or email hello@propspera.com.');
+      setError(t('contactError'));
     } finally {
       setSubmitting(false);
     }
@@ -130,7 +130,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                 onClick={onClose}
                 className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
               >
-                Close
+                {t('contactCloseButton')}
               </button>
             </div>
           ) : (
@@ -138,7 +138,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address <span className="text-red-500">*</span>
+                  {t('contactEmailLabel')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <MailIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -146,7 +146,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                     type="email"
                     value={email}
                     onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(p => ({ ...p, email: '' })); }}
-                    placeholder="your@email.com"
+                    placeholder={t('contactEmailPlaceholder')}
                     className={`w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.email ? 'ring-2 ring-red-400' : ''}`}
                   />
                 </div>
@@ -156,7 +156,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number <span className="text-red-500">*</span>
+                  {t('contactPhoneLabel')} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <PhoneIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -164,7 +164,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                     type="tel"
                     value={phone}
                     onChange={e => { setPhone(e.target.value); if (errors.phone) setErrors(p => ({ ...p, phone: '' })); }}
-                    placeholder="+250 7XX XXX XXX"
+                    placeholder={t('contactPhonePlaceholder')}
                     className={`w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.phone ? 'ring-2 ring-red-400' : ''}`}
                   />
                 </div>
@@ -174,7 +174,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
               {/* Message */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message <span className="text-red-500">*</span>
+                  {t('contactMessageLabel')} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={message}
@@ -184,7 +184,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                       if (errors.message) setErrors(p => ({ ...p, message: '' }));
                     }
                   }}
-                  placeholder="How can we help you? Tell us about your property needs, questions, or feedback..."
+                  placeholder={t('messagePlaceholder')}
                   rows={5}
                   className={`w-full px-4 py-3 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none ${errors.message ? 'ring-2 ring-red-400' : ''}`}
                 />
@@ -217,7 +217,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                     </svg>
-                    Sending...
+                    {t('contactSending')}
                   </>
                 ) : (
                   <>
@@ -228,7 +228,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ onClose }) => {
               </button>
  
               <p className="text-center text-xs text-gray-400">
-                Or email us directly at{' '}
+                {t('contactOrEmail')}{' '}
                 <a href="mailto:hello@propspera.com" className="text-blue-600 hover:underline">
                   hello@propspera.com
                 </a>

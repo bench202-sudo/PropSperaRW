@@ -156,6 +156,7 @@ export interface SearchFilters {
   query?: string;
   property_type?: PropertyType | 'all';
   listing_type?: ListingType | 'all';
+  sort_by?: 'newest' | 'price_low' | 'price_high' | 'most_viewed';
   min_price?: number;
   max_price?: number;
   bedrooms?: number | 'any';

@@ -42,7 +42,7 @@ const sections: SeoSection[] = [
   {
     heading: 'How to Buy a House in Kigali with PropSpera',
     steps: [
-      'Browse listings: Filter by neighborhood, bedrooms, price range, and property type',
+      'Browse All Listings: Filter by neighborhood, bedrooms, price range, and property type',
       'Contact an agent: Reach out directly through PropSpera — no broker intermediaries',
       'Arrange a viewing: Visit properties shortlisted with agent assistance',
       'Due diligence: Verify land title, ownership, and RDB registration through LAIS',

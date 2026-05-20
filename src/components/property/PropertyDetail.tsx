@@ -35,18 +35,29 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
   const currentMedia = mediaItems[currentImageIndex] ?? null;
  
   const [localViews, setLocalViews] = useState(property.views || 0);
+
+  useEffect(() => {
+    setLocalViews(property.views || 0);
+  }, [property.id, property.views]);
  
   useEffect(() => {
     const incrementViews = async () => {
+      const viewedKey = `propspera:viewed:${property.id}`;
+      if (sessionStorage.getItem(viewedKey)) {
+        return;
+      }
+
       const { error } = await supabase.rpc('increment_property_views', { property_id: property.id });
       if (!error) {
         setLocalViews(prev => prev + 1);
+        sessionStorage.setItem(viewedKey, '1');
       } else {
         // Fallback: direct update if RPC doesn't exist
         await supabase.from('properties')
           .update({ views: (property.views || 0) + 1 })
           .eq('id', property.id);
         setLocalViews((property.views || 0) + 1);
+        sessionStorage.setItem(viewedKey, '1');
       }
     };
     incrementViews();

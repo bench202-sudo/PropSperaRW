@@ -16,6 +16,7 @@ import Footer from '@/components/layout/Footer';
  
 // Home Components
 import HeroSection from '@/components/home/HeroSection';
+import TrendingProperties from '@/components/home/TrendingProperties';
 import FeaturedProperties from '@/components/home/FeaturedProperties';
 import NeighborhoodSection from '@/components/home/NeighborhoodSection';
 import AgentsSection from '@/components/home/AgentsSection';
@@ -78,6 +79,31 @@ type View = 'home' | 'search' | 'agents' | 'favorites' | 'compare';
 type SearchViewMode = 'grid' | 'map' | 'split';
  
 const MAX_COMPARE = 3;
+
+const TRENDING_WINDOW_DAYS = 30;
+
+const toAgeInDays = (createdAt: string): number => {
+  const createdTs = new Date(createdAt).getTime();
+  if (Number.isNaN(createdTs)) return TRENDING_WINDOW_DAYS;
+  const msInDay = 1000 * 60 * 60 * 24;
+  return Math.max(1, Math.floor((Date.now() - createdTs) / msInDay));
+};
+
+const getRecencyWeightedViews = (property: Property): number => {
+  const ageDays = toAgeInDays(property.created_at);
+  const rawViews = property.views || 0;
+  const recencyBoost = ageDays <= 7 ? 1.4 : ageDays <= 30 ? 1.15 : 1;
+  const decay = ageDays > 30 ? 1 + (ageDays - 30) / 90 : 1;
+  return (rawViews * recencyBoost) / decay;
+};
+
+const estimateWeeklyViews = (property: Property): number => {
+  const ageDays = toAgeInDays(property.created_at);
+  const rawViews = property.views || 0;
+  if (ageDays <= 7) return rawViews;
+  if (ageDays <= 30) return Math.max(1, Math.round((rawViews / ageDays) * 7));
+  return Math.max(1, Math.round(rawViews * 0.2));
+};
  
  
  
@@ -136,6 +162,7 @@ const AppLayout: React.FC = () => {
     query: '',
     property_type: 'all',
     listing_type: 'all',
+    sort_by: 'newest',
     bedrooms: 'any',
     neighborhood: '',
     verified_only: false
@@ -316,8 +343,8 @@ const AppLayout: React.FC = () => {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
-    const filteredProperties = useMemo(() => {
-    return properties.filter(property => {
+  const filteredProperties = useMemo(() => {
+    const result = properties.filter(property => {
       if (appUser?.role === 'admin') {
         // Admins see all properties
       } else if (appUser?.role === 'agent') {
@@ -360,7 +387,53 @@ const AppLayout: React.FC = () => {
       
       return true;
     });
+
+    const sorted = [...result];
+    switch (filters.sort_by) {
+      case 'price_low':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price_high':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'most_viewed':
+        sorted.sort((a, b) => {
+          const scoreDiff = getRecencyWeightedViews(b) - getRecencyWeightedViews(a);
+          if (scoreDiff !== 0) return scoreDiff;
+          const viewsDiff = (b.views || 0) - (a.views || 0);
+          if (viewsDiff !== 0) return viewsDiff;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        break;
+      case 'newest':
+      default:
+        sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+    }
+
+    return sorted;
   }, [properties, filters, appUser]);
+
+  const trendingProperties = useMemo(() => {
+    const approved = properties.filter((p) => p.status === 'approved');
+    const recentCutoff = Date.now() - TRENDING_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    const recentPool = approved.filter((p) => new Date(p.created_at).getTime() >= recentCutoff);
+    const sourcePool = recentPool.length > 0 ? recentPool : approved;
+
+    return sourcePool
+      .map((property) => ({
+        property,
+        weeklyViews: estimateWeeklyViews(property),
+      }))
+      .sort((a, b) => {
+        const weeklyDiff = b.weeklyViews - a.weeklyViews;
+        if (weeklyDiff !== 0) return weeklyDiff;
+        const viewsDiff = (b.property.views || 0) - (a.property.views || 0);
+        if (viewsDiff !== 0) return viewsDiff;
+        return new Date(b.property.created_at).getTime() - new Date(a.property.created_at).getTime();
+      })
+      .slice(0, 4);
+  }, [properties]);
  
   // Compare properties resolved
   const compareProperties = useMemo(() => {
@@ -647,6 +720,11 @@ const AppLayout: React.FC = () => {
               agentCount={verifiedAgents.length}
               listingCount={properties.filter(p => p.status === 'approved').length}
             />
+
+            <TrendingProperties
+              properties={trendingProperties}
+              onSelectProperty={setSelectedProperty}
+            />
  
             {/* Featured Properties */}
             <FeaturedProperties
@@ -828,7 +906,7 @@ const AppLayout: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noPropertiesFound')}</h3>
                         <p className="text-gray-500 mb-4">{t('tryAdjustingFilters')}</p>
                         <button
-                          onClick={() => setFilters({ query: '', property_type: 'all', listing_type: 'all', bedrooms: 'any', neighborhood: '', verified_only: false })}
+                          onClick={() => setFilters({ query: '', property_type: 'all', listing_type: 'all', sort_by: 'newest', bedrooms: 'any', neighborhood: '', verified_only: false })}
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                         >
                           {t('clearFilters')}
