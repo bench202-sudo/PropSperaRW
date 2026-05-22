@@ -1661,7 +1661,7 @@ export const supportContentByLanguage: Record<Language, SupportContent> = {
             {
               question: 'Ese imitungo iba yaragenzuwe?',
               answer:
-                'Dushishikariza aba agenti gutanga amatangazo y\'ukuri kandi tugakurikirana ibikorwa biteye inkeke. Buri gihe jya gusura umutungo imbonankubone, genzura nyir\'umutungo n\'inyandiko ziwemeza, kandi wirinde kwishyura nta masezerano akwiye.',
+                'Dushishikariza aba agenti gutanga amatangazo y\'ukuri kandi tugakurikirana ibikorwa biteye inkeke. Buri gihe jya gusura umutungo imbonankubone, genzura nyir\'umutungo n\'inyandiko ziwemeza, kandi wirinde kohereza amafaranga nta nyandiko zibihamya.',
             },
             {
               question: 'Nshobora kubika imitungo nkiri kureba?',

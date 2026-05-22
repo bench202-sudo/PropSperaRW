@@ -2,6 +2,7 @@ import React from 'react';
 import { Property } from '@/types';
 import { MapPinIcon, ChevronRightIcon } from '@/components/icons/Icons';
 import { useLanguage } from '@/contexts/AuthContext';
+import { translatePropertyCount } from '../../utils/seo';
  
 interface NeighborhoodSectionProps {
   properties: Property[];
@@ -31,7 +32,7 @@ const NeighborhoodSection: React.FC<NeighborhoodSectionProps> = ({
   properties,
   onSelectNeighborhood,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
  
   // Count approved listings per neighborhood, sorted by count desc
   const neighborhoodCounts = properties
@@ -88,7 +89,7 @@ const NeighborhoodSection: React.FC<NeighborhoodSectionProps> = ({
                 </div>
                 <h3 className="text-white font-bold text-lg">{neighborhood}</h3>
                 <p className="text-white/80 text-sm">
-                  {count} {count === 1 ? t('property') : t('properties')}
+                  {language === 'rw' ? translatePropertyCount(count) : `${count} ${t('properties')}`}
                 </p>
               </div>
               <div className="absolute top-3 right-3 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -122,7 +123,9 @@ const NeighborhoodSection: React.FC<NeighborhoodSectionProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-blue-600 bg-blue-50 group-hover:bg-blue-100 px-2 py-0.5 rounded-full transition-colors">
-                        {count} {count === 1 ? t('property') : t('properties')}
+                        {language === 'rw'
+                          ? translatePropertyCount(count)
+                          : `${count} ${count === 1 ? t('property') : t('properties')}`}
                       </span>
                       <ChevronRightIcon size={15} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
                     </div>

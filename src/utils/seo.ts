@@ -117,3 +117,11 @@ export function applySEOUrl(f: SEOFilters): void {
   const qs = params.toString();
   window.history.replaceState({}, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
 }
+
+// Utility function for Kinyarwanda property count translation
+export function translatePropertyCount(count: number): string {
+  if (count === 1) {
+    return `Umutungo ${count}`;
+  }
+  return `Imitungo ${count}`;
+}
