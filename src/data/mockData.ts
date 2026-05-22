@@ -2,12 +2,13 @@ import { Conversation, Message, Property } from '@/types';
  
 // Kigali neighborhoods
 export const neighborhoods = [
- 'Birembo', 'Bumbogo', 'Gaculiro', 'Gahanga', 'Gasabo', 'Gikondo', 'Gisozi', 'Jabana', 'Kabeza', 'Kacyiru', 'Kagugu', 'Kanombe', 'Kanyinya', 'Kibagabaga', 'Kicukiro', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Kiyovu', 'Masoro', 'Ndera', 'Nyamirambo', 'Nyarutarama', 'Nzove', 'Rebero', 'Remera', 'Rugando', 'Rusororo'
+ 'Batsinda', 'Birembo', 'Bumbogo', 'Gaculiro', 'Gahanga', 'Gasabo', 'Gikondo', 'Gisozi', 'Jabana', 'Kabeza', 'Kacyiru', 'Kagugu', 'Kanombe', 'Kanyinya', 'Kibagabaga', 'Kicukiro', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Kiyovu', 'Masoro', 'Ndera', 'Nduba', 'Nyamirambo', 'Nyarutarama', 'Nzove', 'Rebero', 'Remera', 'Rugando', 'Rusororo'
 ];
  
 // Neighborhood coordinates for map
 // All coordinates verified against Kigali geography (lng must be ~30.06–30.18)
 export const neighborhoodCoordinates: Record<string, { lat: number; lng: number }> = {
+  'Batsinda':    { lat: -1.8969, lng: 30.0690 }, // 
   'Birembo':    { lat: -1.89711, lng: 30.13305 }, // 
   'Bumbogo':    { lat: -1.8805, lng: 30.1517 }, // 
   'Gaculiro':   { lat: -1.9206, lng: 30.0787 }, // North-central
@@ -29,6 +30,7 @@ export const neighborhoodCoordinates: Record<string, { lat: number; lng: number 
   'Kiyovu':     { lat: -1.9479, lng: 30.0544 }, // City centre, upscale
   'Masoro':     { lat: -1.943, lng: 30.1395 }, // 
   'Ndera':      { lat: -1.9495, lng: 30.1697 }, // 
+  'Nduba':      { lat: -1.8555, lng: 30.1120 }, // 
   'Nyamirambo': { lat: -1.9759, lng: 30.0440 }, // South-west, market area
   'Nyarutarama':{ lat: -1.9289, lng: 30.1033 }, // Golf course area, northern Gasabo
   'Nzove':      { lat: -1.9201, lng: 30.1023 }, // Northern Gasabo
