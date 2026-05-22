@@ -830,18 +830,40 @@ const AppLayout: React.FC = () => {
               const _pt = filters.property_type;
               const _nb = filters.neighborhood;
               const _cnt = filteredProperties.length;
-              const _typeMap: Record<string, string> = { house: 'Houses', apartment: 'Apartments', villa: 'Villas', commercial: 'Commercial Properties', land: 'Land', all: 'Properties' };
-              const _type = _typeMap[_pt] ?? 'Properties';
-              const _ll = _lt === 'rent' ? 'for Rent' : _lt === 'sale' ? 'for Sale' : '';
+              const _typeMap: Record<string, string> = {
+                house: t('searchTypeHouses'),
+                apartment: t('searchTypeApartments'),
+                villa: t('searchTypeVillas'),
+                commercial: t('searchTypeCommercial'),
+                land: t('searchTypeLand'),
+                all: t('searchTypeProperties'),
+              };
+              const _type = _typeMap[_pt] ?? t('searchTypeProperties');
+              const _typeLower = _type.toLowerCase();
               const _loc = _nb || 'Kigali';
-              const _h1 = [_type, _ll, `in ${_loc}`].filter(Boolean).join(' ');
+              let _h1: string;
+              if (_lt === 'rent') {
+                _h1 = t('searchH1TypeForRentInLocation').replace('{type}', _type).replace('{location}', _loc);
+              } else if (_lt === 'sale') {
+                _h1 = t('searchH1TypeForSaleInLocation').replace('{type}', _type).replace('{location}', _loc);
+              } else if (_pt !== 'all') {
+                _h1 = t('searchH1TypeInLocation').replace('{type}', _type).replace('{location}', _loc);
+              } else {
+                _h1 = t('searchH1InLocation').replace('{location}', _loc);
+              }
               const _showP = _lt !== 'all' || _pt !== 'all' || _nb !== '';
               let _para: string | null = null;
-              if (_nb && _lt === 'rent') _para = `Browse ${_cnt} verified ${_type.toLowerCase()} for rent in ${_nb}, Kigali. View photos, prices, and contact agents directly on PropSpera.`;
-              else if (_nb && _lt === 'sale') _para = `Discover ${_cnt} ${_type.toLowerCase()} for sale in ${_nb}, Kigali. Compare listings and connect with verified agents on PropSpera.`;
-              else if (_nb) _para = `Explore ${_cnt} properties in ${_nb}, Kigali — apartments, houses, villas and more. Find your next home or investment on PropSpera.`;
-              else if (_lt === 'rent') _para = `Browse ${_cnt} verified ${_type.toLowerCase()} for rent across Kigali, including Kacyiru, Nyarutarama, Kimihurura and Gisozi. Find your next home on PropSpera.`;
-              else if (_lt === 'sale') _para = `Discover ${_cnt} ${_type.toLowerCase()} for sale in Kigali. From starter homes to luxury villas — compare listings and contact agents on PropSpera.`;
+              if (_nb && _lt === 'rent') {
+                _para = t('neighborhoodRentDescription').replace('{count}', String(_cnt)).replace('{type}', _typeLower).replace('{neighborhood}', _nb);
+              } else if (_nb && _lt === 'sale') {
+                _para = t('neighborhoodSaleDescription').replace('{count}', String(_cnt)).replace('{type}', _typeLower).replace('{neighborhood}', _nb);
+              } else if (_nb) {
+                _para = t('neighborhoodDescription').replace('{count}', String(_cnt)).replace('{neighborhood}', _nb);
+              } else if (_lt === 'rent') {
+                _para = t('kigaliRentDescription').replace('{count}', String(_cnt)).replace('{type}', _typeLower);
+              } else if (_lt === 'sale') {
+                _para = t('kigaliSaleDescription').replace('{count}', String(_cnt)).replace('{type}', _typeLower);
+              }
               const _links = [
                 { label: 'Apartments for Rent in Kigali', params: '?type=rent&propertyType=apartment' },
                 { label: 'Houses for Sale in Kigali', params: '?type=sale&propertyType=house' },

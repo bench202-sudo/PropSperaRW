@@ -78,7 +78,7 @@ const NeighborhoodSection: React.FC<NeighborhoodSectionProps> = ({
                   neighborhoodImages[neighborhood] ||
                   'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop'
                 }
-                alt={`Properties in ${neighborhood}, Kigali`}
+                alt={t('neighborhoodImgAlt').replace('{neighborhood}', neighborhood)}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
