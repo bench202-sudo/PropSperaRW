@@ -148,10 +148,13 @@ const AppLayout: React.FC = () => {
   const [activeNav, setActiveNav] = useState<NavItem>('home');
   const [currentView, setCurrentView] = useState<View>(() => {
     const params = new URLSearchParams(window.location.search);
-    const view = params.get('view');
-    if (view === 'agents' || view === 'search') return view as View;
+    const view = params.get('view') as View;
+    if (['search', 'agents', 'favorites', 'compare'].includes(view)) return view;
     return 'home';
   });
+  // Ref so callbacks always read the latest view without needing re-memoisation
+  const currentViewRef = useRef<View>('home');
+  currentViewRef.current = currentView;
 
   // Conversations — fetched and polled by dedicated hook
   const { conversations, unreadCount: unreadMessages } = useConversations(appUser);
@@ -205,7 +208,7 @@ const AppLayout: React.FC = () => {
       setAuthModalView('login');
       setAgentSignupIntent(false);
       setShowAuthModal(true);
-      window.history.replaceState({}, '', window.location.pathname);
+      window.history.replaceState({ appView: currentViewRef.current }, '', window.location.pathname);
     }
   }, []);
   const [showMessaging, setShowMessaging] = useState(false);
@@ -226,10 +229,75 @@ const AppLayout: React.FC = () => {
   const [showNotificationPrefs, setShowNotificationPrefs] = useState(false);
   const [showSaveSearch, setShowSaveSearch] = useState(false);
   const [showProfilePage, setShowProfilePage] = useState(false);
- 
-  
-  // Refs
+
+  // ── Refs ──────────────────────────────────────────────────────────────────
   const searchSectionRef = useRef<HTMLDivElement>(null);
+
+  // ── Browser history helpers ───────────────────────────────────────────────
+  // Stamp the initial history entry so the popstate handler always has state.
+  useEffect(() => {
+    window.history.replaceState({ appView: currentViewRef.current }, '', window.location.href);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Navigate to a view and push (or replace) a browser history entry.
+  const changeView = (view: View, replace = false) => {
+    const url = view === 'home' ? '/' : `/?view=${view}`;
+    if (replace) {
+      window.history.replaceState({ appView: view }, '', url);
+    } else {
+      window.history.pushState({ appView: view }, '', url);
+    }
+    setCurrentView(view);
+  };
+
+  // Open property detail modal and push a history entry so back closes it.
+  const openPropertyDetail = useCallback((property: Property | null) => {
+    if (property) {
+      window.history.pushState(
+        { appView: currentViewRef.current, appOverlay: 'property' },
+        '',
+        window.location.href,
+      );
+    }
+    setSelectedProperty(property);
+  }, []);
+
+  // Open agent profile modal and push a history entry so back closes it.
+  const openAgentDetail = useCallback((agent: Agent | null) => {
+    if (agent) {
+      window.history.pushState(
+        { appView: currentViewRef.current, appOverlay: 'agent' },
+        '',
+        window.location.href,
+      );
+    }
+    setSelectedAgent(agent);
+  }, []);
+
+  // Handle browser back / forward.
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as { appView?: View; appOverlay?: string } | null;
+
+      // Close the topmost modal overlay before navigating anywhere.
+      if (selectedProperty) {
+        setSelectedProperty(null);
+        return;
+      }
+      if (selectedAgent) {
+        setSelectedAgent(null);
+        return;
+      }
+
+      const validViews: View[] = ['home', 'search', 'agents', 'favorites', 'compare'];
+      const target = state?.appView;
+      setCurrentView(target && validViews.includes(target) ? target : 'home');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [selectedProperty, selectedAgent]);
+
  
  
   // Get all verified agents
@@ -314,13 +382,13 @@ const AppLayout: React.FC = () => {
   useEffect(() => {
     if (currentView === 'search') {
       applySEOMeta(buildSEOTitle(filters), buildSEOMeta(filters));
-      applySEOUrl(filters);
+      applySEOUrl(filters, { appView: 'search' });
     } else if (currentView === 'home') {
       document.title = 'PropSpera — Real Estate in Kigali, Rwanda';
       let m = document.querySelector<HTMLMetaElement>('meta[name="description"]');
       if (!m) { m = document.createElement('meta'); m.name = 'description'; document.head.appendChild(m); }
       m.content = "PropSpera is Rwanda's leading real estate platform. Browse properties for sale and rent in Kigali. Connect with verified agents today.";
-      window.history.replaceState({}, '', window.location.pathname.replace(/\?.*$/, ''));
+      window.history.replaceState({ appView: 'home' }, '', '/');
     } else if (currentView === 'agents') {
       document.title = 'Verified Real Estate Agents in Kigali | PropSpera';
     }
@@ -334,6 +402,7 @@ const AppLayout: React.FC = () => {
     const location = params.get('location');
     if (type || propertyType || location) {
       setCurrentView('search');
+      window.history.replaceState({ appView: 'search' }, '', window.location.href);
       setFilters(prev => ({
         ...prev,
         ...(type ? { listing_type: type as any } : {}),
@@ -453,18 +522,18 @@ const AppLayout: React.FC = () => {
   const handleLogout = async () => {
     await signOut();
     setActiveNav('home');
-    setCurrentView('home');
+    changeView('home', true);
   };
- 
+
   const handleNavigation = (item: NavItem) => {
     setActiveNav(item);
     
     switch (item) {
       case 'home':
-        setCurrentView('home');
+        changeView('home');
         break;
       case 'search':
-        setCurrentView('search');
+        changeView('search');
         break;
       case 'messages':
         if (!appUser) {
@@ -490,26 +559,26 @@ const AppLayout: React.FC = () => {
         break;
     }
   };
- 
+
   const handleHeaderNavigate = (view: string) => {
     switch (view) {
       case 'home':
-        setCurrentView('home');
         setActiveNav('home');
+        changeView('home');
         break;
       case 'search':
         setFilters(prev => ({ ...prev, listing_type: 'sale' }));
-        setCurrentView('search');
         setActiveNav('search');
+        changeView('search');
         break;
       case 'search-rent':
         setFilters(prev => ({ ...prev, listing_type: 'rent' }));
-        setCurrentView('search');
         setActiveNav('search');
+        changeView('search');
         break;
       case 'agents':
-        setCurrentView('agents');
         setActiveNav('home');
+        changeView('agents');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       case 'favorites':
@@ -517,32 +586,32 @@ const AppLayout: React.FC = () => {
         break;
     }
   };
- 
+
   const handleSearch = (query: string) => {
     setFilters(prev => ({ ...prev, query }));
-    setCurrentView('search');
     setActiveNav('search');
+    changeView('search');
     searchSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
- 
+
   const handleBrowseListings = () => {
-    setCurrentView('search');
     setActiveNav('search');
+    changeView('search');
     searchSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
- 
+
   const handleViewAllAgents = () => {
     setAgentFilters(defaultAgentFilters);
-    setCurrentView('agents');
+    changeView('agents');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
- 
+
   const handleSelectNeighborhood = (neighborhood: string) => {
     setFilters(prev => ({ ...prev, neighborhood }));
-    setCurrentView('search');
     setActiveNav('search');
+    changeView('search');
   };
- 
+
   const handleToggleFavorite = async (propertyId: string) => {
     if (!appUser) {
       openAuthModal('login');
@@ -550,16 +619,16 @@ const AppLayout: React.FC = () => {
     }
     await toggleFavorite(propertyId);
   };
- 
+
   const handleFavoritesClick = () => {
     if (!appUser) {
       openAuthModal('login');
       return;
     }
-    setCurrentView('favorites');
     setActiveNav('home');
+    changeView('favorites');
   };
- 
+
   // Compare handlers
   const handleToggleCompare = (propertyId: string) => {
     setCompareIds(prev => {
@@ -572,25 +641,25 @@ const AppLayout: React.FC = () => {
       return [...prev, propertyId];
     });
   };
- 
+
   const handleRemoveFromCompare = (propertyId: string) => {
     setCompareIds(prev => prev.filter(id => id !== propertyId));
   };
- 
+
   const handleCompareClick = () => {
     if (compareIds.length > 0) {
-      setCurrentView('compare');
+      changeView('compare');
     }
   };
  
   const handleCompareClose = () => {
-    setCurrentView('search');
     setActiveNav('search');
+    changeView('search');
   };
- 
+
   const handleCompareAddMore = () => {
-    setCurrentView('search');
     setActiveNav('search');
+    changeView('search');
   };
  
  
@@ -723,30 +792,30 @@ const AppLayout: React.FC = () => {
 
             <TrendingProperties
               properties={trendingProperties}
-              onSelectProperty={setSelectedProperty}
+              onSelectProperty={openPropertyDetail}
             />
  
             {/* Featured Properties */}
             <FeaturedProperties
               properties={properties}
               favorites={favoriteIds}
-              onSelectProperty={setSelectedProperty}
+              onSelectProperty={openPropertyDetail}
               onToggleFavorite={handleToggleFavorite}
               onViewAll={handleBrowseListings}
               onCompare={handleToggleCompare}
               compareIds={compareIds}
             />
- 
+
             {/* Neighborhoods */}
             <NeighborhoodSection
               properties={properties}
               onSelectNeighborhood={handleSelectNeighborhood}
             />
- 
+
             {/* Agents Section */}
             <AgentsSection
               agents={agents}
-              onSelectAgent={setSelectedAgent}
+              onSelectAgent={openAgentDetail}
               onContactAgent={handleContactAgent}
               onBecomeAgent={handleBecomeAgent}
               onViewAllAgents={handleViewAllAgents}
@@ -889,7 +958,7 @@ const AppLayout: React.FC = () => {
                           <PropertyCard
                             key={property.id}
                             property={property}
-                            onSelect={setSelectedProperty}
+                            onSelect={openPropertyDetail}
                             onFavorite={handleToggleFavorite}
                             isFavorite={isFavorite(property.id)}
                             onCompare={handleToggleCompare}
@@ -921,7 +990,7 @@ const AppLayout: React.FC = () => {
                   <div className="relative" style={{ height: 'calc(100vh - 220px)' }}>
                     <PropertyMap
                       properties={filteredProperties}
-                      onSelectProperty={setSelectedProperty}
+                      onSelectProperty={openPropertyDetail}
                       onFavorite={handleToggleFavorite}
                       isFavorite={isFavorite}
                       className="h-full"
@@ -948,7 +1017,7 @@ const AppLayout: React.FC = () => {
                                   ? 'border-blue-300 bg-blue-50 shadow-md'
                                   : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm'
                               }`}
-                              onClick={() => setSelectedProperty(property)}
+                              onClick={() => openPropertyDetail(property)}
                               onMouseEnter={() => setHoveredMapProperty(property.id)}
                               onMouseLeave={() => setHoveredMapProperty(null)}
                             >
@@ -998,7 +1067,7 @@ const AppLayout: React.FC = () => {
                     <div className="hidden lg:block lg:w-[55%]">
                       <PropertyMap
                         properties={filteredProperties}
-                        onSelectProperty={setSelectedProperty}
+                        onSelectProperty={openPropertyDetail}
                         onFavorite={handleToggleFavorite}
                         isFavorite={isFavorite}
                         className="h-full"
@@ -1113,7 +1182,7 @@ const AppLayout: React.FC = () => {
                     <AgentCard
                       key={agent.id}
                       agent={agent}
-                      onSelect={setSelectedAgent}
+                      onSelect={openAgentDetail}
                       onContact={handleContactAgent}
                     />
                   ))}
@@ -1167,7 +1236,7 @@ const AppLayout: React.FC = () => {
             <SavedProperties
               properties={properties}
               favoriteIds={favoriteIds}
-              onSelectProperty={setSelectedProperty}
+              onSelectProperty={openPropertyDetail}
               onRemoveFavorite={handleToggleFavorite}
               onBrowseListings={handleBrowseListings}
               loading={favoritesLoading}
@@ -1184,7 +1253,7 @@ const AppLayout: React.FC = () => {
               onRemove={handleRemoveFromCompare}
               onClose={handleCompareClose}
               onAddMore={handleCompareAddMore}
-              onSelectProperty={setSelectedProperty}
+              onSelectProperty={openPropertyDetail}
             />
             <Footer onNavigate={handleHeaderNavigate} onBecomeAgent={handleBecomeAgent} onLogin={() => openAuthModal("login")} onContact={() => setShowContact(true)} onPrivacyPolicy={() => setShowPrivacyPolicy(true)} onTermsOfService={() => setShowTermsOfService(true)} onFAQ={() => setShowFAQ(true)} onHelpCenter={() => setShowHelpCenter(true)} />
           </>
@@ -1291,7 +1360,7 @@ const AppLayout: React.FC = () => {
             onContact={handleContactAgent}
             onSelectProperty={(p) => {
               setSelectedAgent(null);
-              setSelectedProperty(p);
+              openPropertyDetail(p);
             }}
             onLoginRequired={() => openAuthModal('login')}
           />

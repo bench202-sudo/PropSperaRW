@@ -109,13 +109,13 @@ export function extractIdFromSlug(slug: string): string {
   return slug.slice(-36);
 }
 
-export function applySEOUrl(f: SEOFilters): void {
+export function applySEOUrl(f: SEOFilters, viewState?: object): void {
   const params = new URLSearchParams();
   if (f.listing_type && f.listing_type !== 'all') params.set('type', f.listing_type);
   if (f.property_type && f.property_type !== 'all') params.set('propertyType', f.property_type);
   if (f.neighborhood) params.set('location', encodeURIComponent(f.neighborhood));
   const qs = params.toString();
-  window.history.replaceState({}, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  window.history.replaceState(viewState ?? {}, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
 }
 
 // Utility function for Kinyarwanda property count translation
