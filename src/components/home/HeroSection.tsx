@@ -1,5 +1,5 @@
 import React from 'react';
-import { SearchIcon, CheckCircleIcon, ShieldCheckIcon, BuildingIcon } from '@/components/icons/Icons';
+import { SearchIcon, CheckCircleIcon, ShieldCheckIcon, BuildingIcon, MapPinIcon } from '@/components/icons/Icons';
 import { useLanguage } from '@/contexts/AuthContext';
  
 interface HeroSectionProps {
@@ -8,6 +8,7 @@ interface HeroSectionProps {
   onBecomeAgent: () => void;
   agentCount?: number;
   listingCount?: number;
+  neighborhoodCount?: number;
 }
  
 const formatCount = (count: number): string => {
@@ -25,6 +26,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onBecomeAgent,
   agentCount = 0,
   listingCount = 0,
+  neighborhoodCount = 0,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const { t } = useLanguage();
@@ -123,12 +125,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-amber-600/20 rounded-full flex items-center justify-center">
-                <ShieldCheckIcon size={20} className="text-amber-400" />
+              <div className="w-10 h-10 bg-cyan-600/20 rounded-full flex items-center justify-center">
+                <MapPinIcon size={20} className="text-cyan-400" />
               </div>
               <div>
-                <p className="text-white font-semibold">100%</p>
-                <p className="text-gray-400 text-sm">{t('secure')}</p>
+                <p className="text-white font-semibold">{formatCount(neighborhoodCount)}</p>
+                <p className="text-gray-400 text-sm">{t('activeNeighborhoods')}</p>
               </div>
             </div>
           </div>

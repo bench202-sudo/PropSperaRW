@@ -150,6 +150,7 @@ const translations = {
     becomeVerifiedAgent: 'Become a Verified Agent',
     verifiedAgents: 'Verified Agents',
     activeListings: 'Active Listings',
+    activeNeighborhoods: 'Active Neighborhoods',
     secure: 'Secure',
     // ─── Neighborhood Section ──────────────────────────────────────────────
     exploreNeighborhoods: 'Explore Kigali Neighborhoods',
@@ -587,7 +588,7 @@ const translations = {
     submit: 'Soumettre', retry: 'Réessayer', refresh: 'Actualiser', search: 'Rechercher',
     clear: 'Effacer', view: 'Voir', hide: 'Masquer', edit: 'Modifier', approve: 'Approuver',
     reject: 'Rejeter', back: 'Retour', processing: 'En cours...', comingSoon: 'Bientôt',
-    error: "Une erreur s'est produite. Veuillez réessayer.', noResults: 'Aucun résultat",
+    error: "Une erreur s'est produite. Veuillez réessayer.", noResults: 'Aucun résultat',
     perMonth: '/mois', beds: 'Chambres', bed: 'Chambre', baths: 'Salles de bain', bath: 'Salle de bain', sqm: 'm²',
     // Nav
     home: 'Accueil', buy: 'Acheter', rent: 'Louer', agents: 'Agents', compare: 'Comparer',
@@ -728,6 +729,7 @@ const translations = {
     becomeVerifiedAgent: 'Devenir agent vérifié',
     verifiedAgents: 'Agents vérifiés',
     activeListings: 'Annonces actives',
+    activeNeighborhoods: 'Quartiers Actifs',
     secure: 'Sécurisé',
     // ─── Neighborhood Section ──────────────────────────────────────────────
     exploreNeighborhoods: 'Explorer les quartiers de Kigali',
@@ -1303,6 +1305,7 @@ const translations = {
     becomeVerifiedAgent: 'Ba umu Agenti wemewe',
     verifiedAgents: 'aba Agenti bemewe',
     activeListings: 'Itangazo ryaboneka',
+    activeNeighborhoods: 'Imidugudu Irimo Inzu',
     secure: 'Inyuma',
     // Neighborhood Section
     exploreNeighborhoods: 'Shakisha mu bice bimwe na bimwe bya Kigali',

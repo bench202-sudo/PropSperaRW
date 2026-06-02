@@ -435,6 +435,15 @@ const AppLayout: React.FC = () => {
       .slice(0, 4);
   }, [properties]);
  
+  const activeNeighborhoodCount = useMemo(() => {
+    const activeNeighborhoods = new Set(
+      properties
+        .filter((p) => p.status === 'approved' && p.neighborhood?.trim())
+        .map((p) => p.neighborhood!.trim()),
+    );
+    return activeNeighborhoods.size;
+  }, [properties]);
+ 
   // Compare properties resolved
   const compareProperties = useMemo(() => {
     return compareIds
@@ -719,6 +728,7 @@ const AppLayout: React.FC = () => {
               onBecomeAgent={handleBecomeAgent}
               agentCount={verifiedAgents.length}
               listingCount={properties.filter(p => p.status === 'approved').length}
+              neighborhoodCount={activeNeighborhoodCount}
             />
 
             <TrendingProperties
