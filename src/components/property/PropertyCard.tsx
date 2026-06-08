@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Property } from '@/types';
 import { formatPrice } from '@/data/mockData';
 import { HeartIcon, MapPinIcon, BedIcon, BathIcon, AreaIcon, PlotSizeIcon, CheckCircleIcon, ClockIcon, EyeIcon, ColumnsIcon, StarIcon } from '@/components/icons/Icons';
@@ -37,8 +36,38 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   const furnished = (property as any).furnished as string | undefined;
   const builtArea = (property as any).built_area as number | undefined;
  
-  const handleFavoriteClick = (e: React.MouseEvent) => { e.stopPropagation(); if (onFavorite) onFavorite(property.id); };
-  const handleCompareClick = (e: React.MouseEvent) => { e.stopPropagation(); if (onCompare) onCompare(property.id); };
+  const handleFavoriteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onFavorite) onFavorite(property.id);
+  };
+
+  const handleCompareClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onCompare) onCompare(property.id);
+  };
+
+  const slug = generatePropertySlug(property);
+  const openProperty = () => {
+    onSelect(property);
+  };
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    if (e.ctrlKey || e.metaKey) {
+      window.open(`/property/${slug}`, '_blank');
+      return;
+    }
+    openProperty();
+  };
+
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openProperty();
+    }
+  };
  
   const getStatusBadge = () => {
     switch (property.status) {
@@ -50,19 +79,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   };
  
   const compareDisabled = !isInCompare && compareCount >= 3;
-  const slug = generatePropertySlug(property);
 
   return (
-    <Link
-      to={`/property/${slug}`}
-      onClick={(e) => {
-        // Let middle-click and ctrl/cmd+click open in new tab naturally.
-        // Regular left-clicks: call onSelect (opens modal) and stay on page.
-        if (!e.ctrlKey && !e.metaKey && e.button === 0) {
-          e.preventDefault();
-          onSelect(property);
-        }
-      }}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
       className={`bg-white rounded-xl shadow-sm border overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 group block ${isInCompare ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-gray-100'}`}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -87,12 +110,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         )}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           {onFavorite && (
-            <button onClick={handleFavoriteClick} className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
+            <button type="button" onClick={handleFavoriteClick} className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
               <HeartIcon size={18} filled={isFavorite} className={isFavorite ? 'text-red-500' : 'text-gray-600'} />
             </button>
           )}
           {onCompare && (
-            <button onClick={handleCompareClick} disabled={compareDisabled}
+            <button type="button" onClick={handleCompareClick} disabled={compareDisabled}
               className={`w-9 h-9 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-sm ${isInCompare ? 'bg-indigo-500 text-white hover:bg-indigo-600' : compareDisabled ? 'bg-white/60 text-gray-300 cursor-not-allowed' : 'bg-white/90 text-gray-600 hover:bg-white hover:text-indigo-600'}`}
               title={isInCompare ? t('comparing') : compareDisabled ? t('maxCompare') : t('addComparison')}>
               <ColumnsIcon size={16} />
