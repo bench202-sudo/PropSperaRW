@@ -64,6 +64,36 @@ const supabasePublic = createClient(supabaseUrl, supabaseKey, {
 
 export { supabase, supabasePublic };
 
+// --- Diagnostic logging (temporary) -------------------------------------
+if (typeof window !== 'undefined') {
+  try {
+    // Log the configured values so we can verify what's baked into the bundle
+    console.log('[DIAG] Supabase init:', {
+      supabaseUrl: supabaseUrl,
+      supabaseKeyPrefix: (supabaseKey || '').slice(0, 12) + '...',
+      origin: window.location.origin,
+    });
+
+    // Wrap global fetch to log outgoing requests that target supabase domains.
+    // This helps locate any runtime calls using unexpected project refs.
+    const _origFetch = window.fetch.bind(window);
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      try {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.href : (input as Request).url;
+        if (url && url.includes('supabase.co')) {
+          // eslint-disable-next-line no-console
+          console.log('[DIAG] fetch ->', url);
+        }
+      } catch (err) {
+        // swallow diagnostics errors
+      }
+      return _origFetch(input as any, init as any);
+    };
+  } catch (e) {
+    // ignore diagnostic install errors
+  }
+}
+
 // ── WhatsApp click tracker ──────────────────────────────────────────────────
 // Call this before opening a wa.me link. Fires-and-forgets — never blocks the
 // redirect and never throws to the caller.
