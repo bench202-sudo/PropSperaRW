@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { Property, PropertyType, ListingType } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
+import { deriveStructuredLocationFromNeighborhood } from '@/lib/location';
+import { KIGALI_SECTORS } from '@/data/rwandaGeography';
 import { XIcon, ImageIcon, ChevronDownIcon, AlertCircleIcon } from '@/components/icons/Icons';
 
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
@@ -41,6 +43,8 @@ interface EditFormData {
   newImages: File[];
   existingVideoUrl: string | null;
   newVideo: File | null;
+  // NEW: Structured location fields
+  sector_label: string;      // Display name (e.g. "Kicukiro")
 }
  
  
@@ -222,6 +226,7 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
       const [newImageUrls, newVideoUrl] = await Promise.all([uploadNewImages(), uploadNewVideo()]);
       const remainingImages = formData.existingImages.filter(img => !imagesToDelete.includes(img));
       const allImages = [...remainingImages, ...newImageUrls];
+      const locationFields = deriveStructuredLocationFromNeighborhood(formData.neighborhood);
 
       // Determine final video_url
       let finalVideoUrl: string | null;
@@ -244,6 +249,10 @@ const EditPropertyModal: React.FC<EditPropertyModalProps> = ({ property, onClose
         bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
         area_sqm: formData.area_sqm ? parseFloat(formData.area_sqm) : null,
         built_area: formData.built_area ? parseFloat(formData.built_area) : null,
+        province_id: locationFields.province_id,
+        district_id: locationFields.district_id,
+        sector_id: locationFields.sector_id,
+        location_label: locationFields.location_label,
         neighborhood: formData.neighborhood,
         address: formData.address.trim() || null,
         latitude: formData.latitude || null,

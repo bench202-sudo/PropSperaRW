@@ -81,7 +81,7 @@ export const getPropertyCoordinates = (property: Property): { lat: number; lng: 
   const idHash = property.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
   // 2. Neighborhood-level fallback — case-insensitive lookup
-  const neighborhood = property.neighborhood;
+  const neighborhood = property.location_label || property.neighborhood;
   if (neighborhood) {
     const coordsKey = Object.keys(neighborhoodCoordinates).find(
       k => k.toLowerCase() === neighborhood.toLowerCase()

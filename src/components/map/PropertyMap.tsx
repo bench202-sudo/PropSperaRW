@@ -147,7 +147,7 @@ async function resolveCoords(property: Property): Promise<[number, number]> {
   }
 
   if (property.address && property.address.trim().length > 0) {
-    const result = await geocodeAddress(property.address, property.neighborhood);
+    const result = await geocodeAddress(property.address, property.location_label || property.neighborhood);
     if (result) return result;
   }
 
@@ -422,7 +422,7 @@ const PropertyMap: React.FC<PropertyMapProps> = ({
                 {selectedPin.title}
               </h4>
               <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                <MapPinIcon size={12} />{selectedPin.neighborhood}, Kigali
+                <MapPinIcon size={12} />{selectedPin.location_label || selectedPin.neighborhood}, Kigali
               </p>
               <div className="flex items-center gap-3 mt-2 text-gray-600 text-xs">
                 {(selectedPin.bedrooms ?? 0) > 0 && (

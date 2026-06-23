@@ -1,12 +1,3 @@
--- =============================================================================
--- submit_property: SECURITY DEFINER function so agents can insert property
--- listings without being blocked by client-side RLS policy mismatches.
---
--- This mirrors the register_agent pattern already in use.
--- The function verifies the caller's agent record via auth.uid() and
--- then inserts the property row with elevated privileges.
--- =============================================================================
-
 CREATE OR REPLACE FUNCTION public.submit_property(
   p_agent_id        uuid,
   p_title           text,
@@ -42,16 +33,12 @@ DECLARE
   v_property_id uuid;
   v_caller_agent_id uuid;
 BEGIN
-  -- Verify the calling user actually owns this agent record.
-  -- auth.uid() is the authoritative identity and works for both new and
-  -- imported users because agents.user_id is kept in sync with auth.uid().
   SELECT id INTO v_caller_agent_id
   FROM public.agents
   WHERE id = p_agent_id
     AND user_id = auth.uid();
 
   IF v_caller_agent_id IS NULL THEN
-    -- Fallback: match through public.users.auth_id for transition edge cases.
     SELECT a.id INTO v_caller_agent_id
     FROM public.agents a
     JOIN public.users u ON u.id = a.user_id

@@ -3,6 +3,7 @@
 interface SEOFilters {
   listing_type?: string;
   property_type?: string;
+  location_label?: string;
   neighborhood?: string;
 }
 
@@ -24,7 +25,8 @@ const LISTING_TYPE_MAP: Record<string, string> = {
 export function buildSEOTitle(f: SEOFilters): string {
   const type = PROPERTY_TYPE_MAP[f.property_type || 'all'] ?? 'Properties';
   const listing = LISTING_TYPE_MAP[f.listing_type || 'all'] ?? '';
-  const loc = f.neighborhood ? `in ${f.neighborhood}` : 'in Kigali';
+  const locationLabel = f.location_label || f.neighborhood;
+  const loc = locationLabel ? `in ${locationLabel}` : 'in Kigali';
   return `${[type, listing, loc].filter(Boolean).join(' ')} | PropSpera`;
 }
 
@@ -35,7 +37,8 @@ export function buildSEOMeta(f: SEOFilters): string {
   };
   const type = typeMap[f.property_type || 'all'] ?? 'properties';
   const listing = f.listing_type === 'rent' ? 'for rent' : f.listing_type === 'sale' ? 'for sale' : '';
-  const loc = f.neighborhood ? `in ${f.neighborhood}, Kigali` : 'in Kigali';
+  const locationLabel = f.location_label || f.neighborhood;
+  const loc = locationLabel ? `in ${locationLabel}, Kigali` : 'in Kigali';
   return `Browse verified ${[type, listing, loc].filter(Boolean).join(' ')}. Contact agents directly and find your next property on PropSpera — Rwanda's real estate marketplace.`;
 }
 
@@ -79,6 +82,7 @@ export function generatePropertySlug(property: {
   id: string;
   bedrooms?: number | null;
   property_type: string;
+  location_label?: string | null;
   neighborhood?: string | null;
 }): string {
   const parts: string[] = [];
@@ -88,9 +92,10 @@ export function generatePropertySlug(property: {
   if (property.property_type) {
     parts.push(property.property_type.toLowerCase().replace(/\s+/g, '-'));
   }
-  if (property.neighborhood) {
+  const locationToken = property.location_label || property.neighborhood;
+  if (locationToken) {
     parts.push(
-      property.neighborhood
+      locationToken
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
@@ -113,7 +118,9 @@ export function applySEOUrl(f: SEOFilters): void {
   const params = new URLSearchParams();
   if (f.listing_type && f.listing_type !== 'all') params.set('type', f.listing_type);
   if (f.property_type && f.property_type !== 'all') params.set('propertyType', f.property_type);
-  if (f.neighborhood) params.set('location', encodeURIComponent(f.neighborhood));
+  if (f.location_label || f.neighborhood) {
+    params.set('location', encodeURIComponent(f.location_label || f.neighborhood || ''));
+  }
   const qs = params.toString();
   window.history.replaceState({}, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
 }

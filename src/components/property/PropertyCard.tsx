@@ -6,6 +6,7 @@ import { HeartIcon, MapPinIcon, BedIcon, BathIcon, AreaIcon, PlotSizeIcon, Check
 import { PropertyRating } from '@/hooks/useReviews';
 import { useLanguage } from '@/contexts/AuthContext';
 import { generatePropertySlug } from '@/utils/seo';
+import { getPropertyLocationLabel } from '@/lib/location';
  
 // Currency-aware price formatter
 export const formatPropertyPrice = (price: number, currency?: string): string => {
@@ -34,6 +35,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   showStatus = false, onCompare, isInCompare = false, compareCount = 0, rating = null,
 }) => {
   const { t } = useLanguage();
+  const locationLabel = getPropertyLocationLabel(property);
   const furnished = (property as any).furnished as string | undefined;
   const builtArea = (property as any).built_area as number | undefined;
  
@@ -135,7 +137,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
         <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">{property.title}</h3>
         <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
-          <MapPinIcon size={14} /><span>{property.neighborhood}, {property.location}</span>
+          <MapPinIcon size={14} /><span>{locationLabel}, {property.location}</span>
         </div>
         <div className="flex items-center gap-4 text-gray-600 text-sm border-t border-gray-100 pt-3">
           {property.bedrooms !== undefined && property.bedrooms > 0 && (

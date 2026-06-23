@@ -61,6 +61,10 @@ export interface Property {
   bathrooms?: number;
   area_sqm?: number;
   location: string;
+  province_id?: string;
+  district_id?: string;
+  sector_id?: string;
+  location_label?: string;
   neighborhood?: string;
   address?: string;
   latitude?: number;
@@ -72,6 +76,11 @@ export interface Property {
   featured: boolean;
   views: number;
   created_at: string;
+  // ── NEW: Structured Rwanda location fields (replaces free-text neighborhood) ──
+  province_id?: string;      // UUID of province (Kigali City, Eastern, Western, Northern, Southern)
+  district_id?: string;      // UUID of district within province
+  sector_id?: string;        // UUID of sector/neighborhood within district
+  location_label?: string;   // Display-friendly location name (e.g. "Kicukiro", preserves legacy neighborhood)
 }
  
 export interface Message {
@@ -160,7 +169,12 @@ export interface SearchFilters {
   min_price?: number;
   max_price?: number;
   bedrooms?: number | 'any';
-  neighborhood?: string;
+  province_id?: string;
+  district_id?: string;
+  sector_id?: string;
+  location_label?: string;
+  neighborhood?: string;              // Legacy: still supported for backward compat, but deprecated
+  sector_id?: string;                 // NEW: structured location filter (sector/neighborhood UUID)
   verified_only?: boolean;
 }
  

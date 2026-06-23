@@ -7,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon, HeartIcon, MapPinIcon, BedIcon, Bath
 import MortgageCalculator from '@/components/mortgage/MortgageCalculator';
 import { useLanguage } from '@/contexts/AuthContext';
 import { generatePropertySlug } from '@/utils/seo';
+import { getPropertyLocationLabel } from '@/lib/location';
  
 interface PropertyDetailProps {
   property: Property;
@@ -20,6 +21,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
   const { t } = useLanguage();
+  const locationLabel = getPropertyLocationLabel(property);
 
   // Build the shareable URL for this property
   const propertySlug = generatePropertySlug(property);
@@ -70,7 +72,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
       ? property.property_type.charAt(0).toUpperCase() + property.property_type.slice(1)
       : 'Property';
     const listingLabel = property.listing_type === 'rent' ? 'for Rent' : 'for Sale';
-    const loc = property.neighborhood || 'Kigali';
+    const loc = locationLabel || 'Kigali';
     const titleStr = `${beds}${typeLabel} ${listingLabel} in ${loc} | PropSpera`;
     document.title = titleStr;
  
@@ -105,7 +107,7 @@ const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onClose, onCo
       ? `$${property.price.toLocaleString()}`
       : `${property.price.toLocaleString()} RWF`;
     const priceLabel = property.listing_type === 'rent' ? `${price}/month` : price;
-    const location = property.address || `${property.neighborhood}, ${property.location}`;
+    const location = property.address || `${locationLabel}, ${property.location}`;
     return [
       `${t('shareMessageIntro')}`,
       ``,

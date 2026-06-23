@@ -42,7 +42,7 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
           property_id: property.id,
           property_title: property.title,
           property_price: formatPrice(property.price, property.currency),
-          property_location: property.neighborhood || property.location || 'Kigali',
+          property_location: property.location_label || property.neighborhood || property.location || 'Kigali',
           property_type: property.property_type,
           buyer_name: formData.name.trim(),
           buyer_email: formData.email.trim(),
@@ -213,7 +213,7 @@ const InquiryModal: React.FC<InquiryModalProps> = ({ property, onClose, onSucces
             />
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-900 line-clamp-1">{property.title}</h3>
-              <p className="text-sm text-gray-500 line-clamp-1">{property.neighborhood}</p>
+              <p className="text-sm text-gray-500 line-clamp-1">{property.location_label || property.neighborhood || property.location}</p>
               <p className="text-blue-600 font-semibold mt-1">
                 {formatPrice(property.price)}
                 {property.listing_type === 'rent' && <span className="text-gray-500 font-normal">/month</span>}

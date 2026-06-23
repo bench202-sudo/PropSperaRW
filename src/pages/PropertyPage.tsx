@@ -158,6 +158,7 @@ const PropertyPage: React.FC = () => {
         bathrooms: propData.bathrooms || undefined,
         area_sqm: propData.area_sqm || undefined,
         location: propData.location,
+        location_label: propData.location_label || undefined,
         neighborhood: propData.neighborhood || undefined,
         address: propData.address || undefined,
         latitude: propData.latitude || undefined,
@@ -200,7 +201,7 @@ const PropertyPage: React.FC = () => {
     const typeLabel =
       property.property_type.charAt(0).toUpperCase() + property.property_type.slice(1);
     const listingLabel = property.listing_type === 'rent' ? 'for Rent' : 'for Sale';
-    const loc = property.neighborhood || 'Kigali';
+    const loc = property.location_label || property.neighborhood || 'Kigali';
     const titleStr = `${beds}${typeLabel} ${listingLabel} in ${loc} | PropSpera`;
     document.title = titleStr;
 
@@ -281,7 +282,7 @@ const PropertyPage: React.FC = () => {
     const baths =
       property.bathrooms && property.bathrooms > 0 ? `${property.bathrooms} bathroom(s), ` : '';
     const area = property.area_sqm ? `${property.area_sqm} sqm, ` : '';
-    const location = property.address || `${property.neighborhood}, ${property.location}`;
+    const location = property.address || `${property.location_label || property.neighborhood}, ${property.location}`;
     return [
       `Hello, I found your listing on PropSpera and I'm interested in the following property:`,
       ``,
@@ -330,7 +331,7 @@ const PropertyPage: React.FC = () => {
     const priceLabel =
       property.listing_type === 'rent' ? `${price}/month` : price;
     const location =
-      property.address || [property.neighborhood, property.location].filter(Boolean).join(', ');
+      property.address || [property.location_label || property.neighborhood, property.location].filter(Boolean).join(', ');
     return [
       `${t('shareMessageIntro')}`,
       ``,
@@ -359,7 +360,7 @@ const PropertyPage: React.FC = () => {
     const priceLabel =
       property.listing_type === 'rent' ? `${price}/month` : price;
     const location =
-      property.address || [property.neighborhood, property.location].filter(Boolean).join(', ');
+      property.address || [property.location_label || property.neighborhood, property.location].filter(Boolean).join(', ');
     if (navigator.share) {
       try {
         await navigator.share({
@@ -424,7 +425,7 @@ const PropertyPage: React.FC = () => {
             PropSpera
           </Link>
           <span className="ml-auto text-sm text-gray-400 truncate max-w-[140px] hidden sm:block">
-            {property.neighborhood || property.location}
+            {property.location_label || property.neighborhood || property.location}
           </span>
 
           {/* Compact share buttons */}
@@ -524,7 +525,7 @@ const PropertyPage: React.FC = () => {
           ) : currentMedia ? (
             <img
               src={currentMedia.src}
-              alt={`${property.bedrooms ? property.bedrooms + ' bedroom ' : ''}${property.property_type} in ${property.neighborhood || 'Kigali'}`}
+              alt={`${property.bedrooms ? property.bedrooms + ' bedroom ' : ''}${property.property_type} in ${property.location_label || property.neighborhood || 'Kigali'}`}
               className="w-full h-full object-cover"
             />
           ) : null}
@@ -620,7 +621,7 @@ const PropertyPage: React.FC = () => {
 
           <div className="flex items-center gap-1.5 text-gray-500 text-sm">
             <MapPinIcon size={15} />
-            <span>{property.address || `${property.neighborhood}, ${property.location}`}</span>
+            <span>{property.address || `${property.location_label || property.neighborhood}, ${property.location}`}</span>
           </div>
 
           {/* Stats row */}

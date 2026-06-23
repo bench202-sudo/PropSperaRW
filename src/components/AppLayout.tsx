@@ -279,7 +279,7 @@ const AppLayout: React.FC = () => {
       if (agentFilters.location !== 'all') {
         const agentProperties = properties.filter(p => p.agent_id === agent.id);
         const hasLocationMatch = agentProperties.some(p => 
-          p.neighborhood?.toLowerCase() === agentFilters.location.toLowerCase()
+          (p.location_label || p.neighborhood)?.toLowerCase() === agentFilters.location.toLowerCase()
         );
         const companyLocationMatch = agent.company_name?.toLowerCase().includes(agentFilters.location.toLowerCase()) || false;
         const bioLocationMatch = agent.bio?.toLowerCase().includes(agentFilters.location.toLowerCase()) || false;
@@ -355,9 +355,10 @@ const AppLayout: React.FC = () => {
       
       if (filters.query) {
         const query = filters.query.toLowerCase();
+        const locationLabel = (property.location_label || property.neighborhood || '').toLowerCase();
         const matchesQuery = 
           property.title.toLowerCase().includes(query) ||
-          property.neighborhood?.toLowerCase().includes(query) ||
+          locationLabel.includes(query) ||
           property.property_type.toLowerCase().includes(query);
         if (!matchesQuery) return false;
       }
@@ -375,7 +376,7 @@ const AppLayout: React.FC = () => {
       }
       
       if (filters.neighborhood) {
-        if (property.neighborhood !== filters.neighborhood) return false;
+        if ((property.location_label || property.neighborhood) !== filters.neighborhood) return false;
       }
       
       if (filters.min_price && property.price < filters.min_price) return false;
@@ -438,8 +439,8 @@ const AppLayout: React.FC = () => {
   const activeNeighborhoodCount = useMemo(() => {
     const activeNeighborhoods = new Set(
       properties
-        .filter((p) => p.status === 'approved' && p.neighborhood?.trim())
-        .map((p) => p.neighborhood!.trim()),
+        .filter((p) => p.status === 'approved' && (p.location_label || p.neighborhood)?.trim())
+        .map((p) => (p.location_label || p.neighborhood)!.trim()),
     );
     return activeNeighborhoods.size;
   }, [properties]);

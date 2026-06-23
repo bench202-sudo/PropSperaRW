@@ -19,6 +19,10 @@ export interface DBProperty {
   built_area: number | null;
   furnished: string | null;
   location: string;
+  province_id: string | null;
+  district_id: string | null;
+  sector_id: string | null;
+  location_label: string | null;
   neighborhood: string | null;
   address: string | null;
   latitude: number | null;

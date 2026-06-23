@@ -18,6 +18,10 @@ interface DBProperty {
   built_area: number | null;
   furnished: string | null;
   location: string;
+  province_id: string | null;
+  district_id: string | null;
+  sector_id: string | null;
+  location_label: string | null;
   neighborhood: string | null;
   address: string | null;
   latitude: number | null;
@@ -51,6 +55,10 @@ const transformProperty = (dbProperty: DBProperty, agentsMap: Record<string, any
     built_area: dbProperty.built_area || undefined,
     furnished: dbProperty.furnished || undefined,
     location: dbProperty.location,
+    province_id: dbProperty.province_id || undefined,
+    district_id: dbProperty.district_id || undefined,
+    sector_id: dbProperty.sector_id || undefined,
+    location_label: dbProperty.location_label || undefined,
     neighborhood: dbProperty.neighborhood || undefined,
     address: dbProperty.address || undefined,
     latitude: dbProperty.latitude || undefined,

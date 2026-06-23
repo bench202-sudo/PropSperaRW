@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth, useLanguage } from '@/contexts/AuthContext';
 import { PropertyType, ListingType } from '@/types';
 import { neighborhoods, amenities } from '@/data/mockData';
+import { deriveStructuredLocationFromNeighborhood } from '@/lib/location';
+import { KIGALI_SECTORS } from '@/data/rwandaGeography';
 import { XIcon, ImageIcon, ChevronDownIcon, CheckCircleIcon, AlertCircleIcon } from '@/components/icons/Icons';
 
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
@@ -42,7 +44,10 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     longitude: null as number | null,
     amenities: [] as string[],
     images: [] as File[],
-    video: null as File | null
+    video: null as File | null,
+    // NEW: Structured location fields (replaces free-text neighborhood)
+    sector_id: '' as string,        // UUID of selected sector/neighborhood
+    sector_label: '',               // Display name of selected sector
   });
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
@@ -272,7 +277,8 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
     if (!formData.property_type) newErrors.property_type = 'Property type is required';
     if (!formData.listing_type) newErrors.listing_type = 'Listing type is required';
     if (!formData.price) newErrors.price = 'Price is required';
-    if (!formData.neighborhood) newErrors.neighborhood = 'Neighborhood is required';
+    // Accept either structured location (sector_id) or legacy neighborhood field
+    if (!formData.sector_id && !formData.neighborhood) newErrors.neighborhood = 'Location is required';
     if (formData.images.length === 0) newErrors.images = 'At least one image is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -317,6 +323,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
       // genuinely expired, the upload call will fail with an auth error and the
       // improved error handling below will surface a clear message.
       const [imageUrls, videoUrl] = await Promise.all([uploadImages(), uploadVideo()]);
+      const locationFields = deriveStructuredLocationFromNeighborhood(formData.neighborhood);
 
       // Use SECURITY DEFINER RPC to bypass RLS policy mismatches that affect
       // imported (migrated) users whose agents.user_id may not yet equal auth.uid().
@@ -333,6 +340,10 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
         p_area_sqm:       formData.area_sqm ? parseFloat(formData.area_sqm) : null,
         p_built_area:     (!isLand && formData.built_area) ? parseFloat(formData.built_area) : null,
         p_location:       'Kigali, Rwanda',
+        p_province_id:    locationFields.province_id,
+        p_district_id:    locationFields.district_id,
+        p_sector_id:      locationFields.sector_id,
+        p_location_label: locationFields.location_label,
         p_neighborhood:   formData.neighborhood,
         p_address:        formData.address.trim() || null,
         p_latitude:       formData.latitude ?? null,
@@ -341,6 +352,9 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
         p_video_url:      videoUrl ?? null,
         p_amenities:      isLand ? [] : formData.amenities,
         p_furnished:      (!isLand && formData.listing_type === 'rent' && formData.furnished) ? formData.furnished : null,
+        // NEW: Pass structured location fields (or null if only legacy neighborhood provided)
+        p_sector_id:      formData.sector_id || null,
+        p_location_label: formData.sector_label || formData.neighborhood || null,
       });
 
       if (rpcError) {
@@ -598,14 +612,29 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ onClose, onSuccess 
             )}
           </div>
  
-          {/* Neighborhood */}
+          {/* Neighborhood / Location – NEW: Structured sector selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('neighborhoodReqLabel')}</label>
+            <p className="text-xs text-gray-500 mb-2">Select a sector/neighborhood in Kigali</p>
             <div className="relative">
-              <select value={formData.neighborhood} onChange={(e) => handleInputChange('neighborhood', e.target.value)}
+              <select 
+                value={formData.sector_label} 
+                onChange={(e) => {
+                  const selectedLabel = e.target.value;
+                  const sector = KIGALI_SECTORS.find(s => s.name === selectedLabel);
+                  handleInputChange('sector_label', selectedLabel);
+                  if (sector) {
+                    // Store both display label and legacy neighborhood for compatibility
+                    setFormData(prev => ({
+                      ...prev,
+                      neighborhood: selectedLabel,  // Keep legacy field in sync
+                      sector_label: selectedLabel,  // New structured field
+                    }));
+                  }
+                }}
                 className={`w-full py-3 px-4 bg-gray-100 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.neighborhood ? 'ring-2 ring-red-500' : ''}`}>
-                <option value="">{t('selectOption')} {t('neighborhood').toLowerCase()}</option>
-                {neighborhoods.map((n) => <option key={n} value={n}>{n}</option>)}
+                <option value="">{t('selectOption')} sector/neighborhood</option>
+                {KIGALI_SECTORS.map((s) => <option key={s.code} value={s.name}>{s.name}</option>)}
               </select>
               <ChevronDownIcon size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             </div>
